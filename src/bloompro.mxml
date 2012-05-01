@@ -1,8 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
-					   xmlns:mx="library://ns.adobe.com/flex/mx">
-	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
-	</fx:Declarations>
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   initialize="init(event)"
+					   applicationComplete="appComplete(event)"
+					   >
+	
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.operations.InsertTextOperation;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.events.TextOperationEvent;
+			
+			protected function init(event:FlexEvent):void
+			{
+				this.nativeWindow.maximize();
+				focusManager.setFocus(input);	
+			}
+			
+			protected function appComplete(event:FlexEvent):void
+			{
+				this.stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
+			}
+			
+			protected function inputKeyDown(event:KeyboardEvent):void
+			{
+				switch(event.keyCode)
+				{
+					case Keyboard.TAB:
+						switch(input.text)
+						{
+							case "bri": input.appendText("stle "); break;
+							case "bris": input.appendText("tle "); break;
+							case "brist": input.appendText("le "); break;
+							case "bristl": input.appendText("e "); break;
+							case "bristle": input.appendText(" "); break;
+							
+							case "bru": input.appendText("sh "); break;
+							case "brus": input.appendText("h "); break;
+							case "brush": input.appendText(" "); break;
+						}
+						break;
+					
+					case Keyboard.ENTER:
+						
+						// TODO: regex
+						// TODO: process command
+						
+						input.text = "";
+						
+						break;
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:TextInput id="input" width="100%" keyDown="inputKeyDown(event)" focusEnabled="false"/>
+
+	<s:Group>
+		
+	</s:Group>
+	
 </s:WindowedApplication>
