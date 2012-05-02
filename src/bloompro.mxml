@@ -4,20 +4,40 @@
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   initialize="init(event)"
 					   applicationComplete="appComplete(event)"
-					   >
+					   usePreloader="false"
+					   backgroundAlpha="0"
+					   backgroundColor="#696969"
+					   showStatusBar="false"
+					   displayStateChange="fadeIn.play()">
+	
+	<fx:Declarations>
+		<s:Parallel id="fadeIn">
+			<s:Animate target="{this}" duration="2000">
+				<s:SimpleMotionPath property="backgroundAlpha" valueFrom="0" valueTo="1"/>
+			</s:Animate>
+			<s:Fade targets="{[vgroup, input, canvas]}" alphaFrom="0" alphaTo="1" duration="2000" startDelay="1000"/>
+		</s:Parallel>
+
+	</fx:Declarations>
 	
 	<fx:Script>
 		<![CDATA[
-			import flashx.textLayout.operations.InsertTextOperation;
-			
 			import mx.events.FlexEvent;
-			
-			import spark.events.TextOperationEvent;
+			import spark.filters.DropShadowFilter;
 			
 			protected function init(event:FlexEvent):void
 			{
 				this.nativeWindow.maximize();
-				focusManager.setFocus(input);	
+				
+				var dropShadow:DropShadowFilter = new spark.filters.DropShadowFilter();
+				dropShadow.color = 0x000000;
+				dropShadow.alpha = 0.4;
+				dropShadow.blurX = 5;
+				dropShadow.blurY = 5;
+				dropShadow.distance = 5;
+				vgroup.filters = [dropShadow];
+				
+				input.setFocus();
 			}
 			
 			protected function appComplete(event:FlexEvent):void
@@ -30,6 +50,7 @@
 				switch(event.keyCode)
 				{
 					case Keyboard.TAB:
+						
 						switch(input.text)
 						{
 							case "bri": input.appendText("stle "); break;
@@ -41,13 +62,17 @@
 							case "bru": input.appendText("sh "); break;
 							case "brus": input.appendText("h "); break;
 							case "brush": input.appendText(" "); break;
+							
+							case "e": input.appendText("xit"); break;
+							case "ex": input.appendText("it"); break;
+							case "exi": input.appendText("t"); break;
 						}
 						break;
 					
 					case Keyboard.ENTER:
 						
-						// TODO: regex
-						// TODO: process command
+						if(input.text == "exit")
+							this.exit();
 						
 						input.text = "";
 						
@@ -58,10 +83,26 @@
 		]]>
 	</fx:Script>
 	
-	<s:TextInput id="input" width="100%" keyDown="inputKeyDown(event)" focusEnabled="false"/>
-
-	<s:Group>
+	<s:VGroup id="vgroup" 
+			  width="100%" height="100%"
+			  alpha="0"
+			  paddingBottom="40" paddingLeft="40" paddingRight="40" paddingTop="40"
+			  >
 		
-	</s:Group>
+		<s:TextInput id="input" 
+					 width="100%" 
+					 alpha="0"
+					 focusEnabled="false"
+					 fontFamily="Monaco"
+					 fontSize="11"
+					 keyDown="inputKeyDown(event)"
+					 />
+	
+		<s:BorderContainer id="canvas"
+						   alpha="0"
+						   width="100%" height="100%"
+			 	/>
+		
+	</s:VGroup>
 	
 </s:WindowedApplication>
