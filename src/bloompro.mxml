@@ -2,30 +2,35 @@
 <s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
-					   initialize="init(event)"
-					   applicationComplete="appComplete(event)"
+					   initialize="windowedApplication_initializeHandler(event)"
+					   applicationComplete="windowedApplication_applicationCompleteHandler(event)"
 					   usePreloader="false"
 					   backgroundAlpha="0"
 					   backgroundColor="#696969"
 					   showStatusBar="false"
-					   displayStateChange="fadeIn.play()">
+					   displayStateChange="fadeIn.play()" 
+					   >
 	
 	<fx:Declarations>
 		<s:Parallel id="fadeIn">
 			<s:Animate target="{this}" duration="2000">
 				<s:SimpleMotionPath property="backgroundAlpha" valueFrom="0" valueTo="1"/>
 			</s:Animate>
-			<s:Fade targets="{[vgroup, input, canvas]}" alphaFrom="0" alphaTo="1" duration="2000" startDelay="1000"/>
+			<s:Fade targets="{[vgroup, input, renderGroup]}" alphaFrom="0" alphaTo="1" duration="2000" startDelay="1000"/>
 		</s:Parallel>
 
 	</fx:Declarations>
 	
 	<fx:Script>
 		<![CDATA[
+			
 			import mx.events.FlexEvent;
+			
 			import spark.filters.DropShadowFilter;
 			
-			protected function init(event:FlexEvent):void
+			// ........................................................................................
+			
+			protected function windowedApplication_initializeHandler(event:FlexEvent):void
 			{
 				this.nativeWindow.maximize();
 				
@@ -40,10 +45,12 @@
 				input.setFocus();
 			}
 			
-			protected function appComplete(event:FlexEvent):void
+			protected function windowedApplication_applicationCompleteHandler(event:FlexEvent):void
 			{
 				this.stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
 			}
+			
+			// ........................................................................................
 			
 			protected function inputKeyDown(event:KeyboardEvent):void
 			{
@@ -66,6 +73,11 @@
 							case "e": input.appendText("xit"); break;
 							case "ex": input.appendText("it"); break;
 							case "exi": input.appendText("t"); break;
+							
+							case "o": input.appendText("pen "); break;
+							case "op": input.appendText("en "); break;
+							case "ope": input.appendText("n "); break;
+							case "open": input.appendText(" "); break;
 						}
 						break;
 					
@@ -73,6 +85,38 @@
 						
 						if(input.text == "exit")
 							this.exit();
+						
+						if(input.text.substring(0, 5) == "open ")
+						{
+							var userInputFileName:String = input.text.substring(5);
+							
+							var appDir:File = File.applicationDirectory;
+							var dirListing:Array = appDir.getDirectoryListing();
+							
+							for each(var file:File in dirListing)
+							{	
+								if(file.name == userInputFileName)
+								{
+									var loader:Loader = new Loader();
+									loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(event:Event):void
+									{
+										var bitmap:Bitmap = event.currentTarget.content as Bitmap;
+										sourceBitmap.source = bitmap;
+										sourceBitmap.alpha = 0.15;
+										
+										var bitmapData:BitmapData = bitmap.bitmapData;
+										
+										var centerX:Number = renderGroup.width / 2;
+										var centerY:Number = renderGroup.height / 2;
+										
+										sourceBitmap.x = centerX - (bitmapData.width / 2);
+										sourceBitmap.y = centerY - (bitmapData.height / 2);
+									});
+									
+									loader.load(new URLRequest(file.url)); 
+								}
+							}
+						}
 						
 						input.text = "";
 						
@@ -98,10 +142,16 @@
 					 keyDown="inputKeyDown(event)"
 					 />
 	
-		<s:BorderContainer id="canvas"
-						   alpha="0"
-						   width="100%" height="100%"
-			 	/>
+		<s:SkinnableContainer id="renderGroup"
+				 alpha="0"
+				 width="100%" height="100%"
+				 backgroundColor="0xffffff">
+			
+			<s:BitmapImage id="sourceBitmap"/>
+			<s:SpriteVisualElement id="canvasContainer"
+								   width="100%" height="100%"/>
+		
+		</s:SkinnableContainer>
 		
 	</s:VGroup>
 	
