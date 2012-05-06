@@ -22,8 +22,8 @@
 	
 	<fx:Script>
 		<![CDATA[
-			
 			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
 			
 			import spark.filters.DropShadowFilter;
 			
@@ -148,6 +148,11 @@
 				}
 			}
 			
+			protected function renderGroup_mouseMoveHandler(event:MouseEvent):void
+			{
+				mousePosLabel.text = StringUtil.substitute("{x:{0},y:{1}}", event.localX, event.localY);
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -166,10 +171,13 @@
 					 keyDown="inputKeyDown(event)"
 					 />
 	
-		<s:SkinnableContainer id="renderGroup"
-				 alpha="0"
-				 width="100%" height="100%"
-				 backgroundColor="0xffffff">
+		<s:SkinnableContainer
+				id="renderGroup"
+				alpha="0"
+				width="100%" height="100%"
+				backgroundColor="0xffffff"
+				mouseMove="renderGroup_mouseMoveHandler(event)"
+				>
 			
 			<s:BitmapImage id="sourceBitmap"/>
 			<s:SpriteVisualElement id="canvasContainer"
@@ -177,8 +185,18 @@
 		
 		</s:SkinnableContainer>
 		
-		<s:Label id="fpsLabel" paddingTop="10" color="0xacacac"
-				 fontFamily="Monaco" fontSize="9"/>
+		<s:HGroup>	
+			<s:Label id="fpsLabel" 
+					 paddingTop="10" 
+					 color="0xacacac"
+					 fontFamily="Monaco" fontSize="9"
+					 />
+			<s:Label id="mousePosLabel"
+					 paddingTop="10" 
+					 color="0xacacac"
+					 fontFamily="Monaco" fontSize="9"
+					 />
+		</s:HGroup>
 		
 	</s:VGroup>
 	
