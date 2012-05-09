@@ -27,6 +27,7 @@
 			import mx.utils.StringUtil;
 			
 			import spark.filters.DropShadowFilter;
+			import spark.skins.spark.ImageSkin;
 			
 			// ........................................................................................
 			
@@ -34,6 +35,7 @@
 			private var curMillisecondCount:uint = 0;
 			private var prevMillisecondCount:uint = getTimer();
 			private var fps:Number = 0.0;
+			private var delta:uint;
 			
 			[Bindable] private var canvasBackgroundColor:uint = 0xffffff;
 			
@@ -41,6 +43,13 @@
 			private var sourceLocal:Point = new Point();
 			private var stagePoint:Point = new Point();
 			private var sampleColor:uint = 0;
+			
+			private var prevMouseX:Number = -1;
+			private var prevMouseY:Number = -1;
+			private var curMouseX:Number  = -1;
+			private var curMouseY:Number  = -1;
+			
+			private var flushTimer:Timer = new Timer(1000);
 			
 			// ........................................................................................
 			
@@ -67,13 +76,13 @@
 				++frameCount;
 				
 				curMillisecondCount = getTimer();
-				var delta:uint = curMillisecondCount - prevMillisecondCount;
-				if (delta >= 1000) 
+				delta = curMillisecondCount - prevMillisecondCount;
+				if (delta > 1000)
 				{
 					fps = frameCount / delta * 1000;
 					fpsLabel.text = fps.toFixed(1) + " fps";
 					prevMillisecondCount = curMillisecondCount;
-					frameCount = 0;
+					frameCount = 0;		
 				}
 			}
 			
@@ -145,6 +154,8 @@
 				sourceBitmap.source = bitmap;
 				sourceBitmap.alpha = 0.15;
 				
+				flushBitmap.source = new Bitmap(new BitmapData(renderGroup.width, renderGroup.height, false, 0xffffff));
+				
 				var centerX:Number = renderGroup.width / 2;
 				var centerY:Number = renderGroup.height / 2;
 				
@@ -152,34 +163,84 @@
 				sourceBitmap.y = centerY - (sourceBitmap.source.bitmapData.height / 2);
 				
 				colorSampleRect.fill = new SolidColor();
+				
+				flushTimer.addEventListener(TimerEvent.TIMER, tick);
+				flushTimer.start();
+			}
+			
+			private function tick(event:TimerEvent):void
+			{
+				flushToBitmap();
+			}
+			
+			private function flushToBitmap():void
+			{
+				flushBitmap.source.bitmapData.draw(canvasContainer);	
+				canvasContainer.graphics.clear();
 			}
 			
 			// ........................................................................................
 			
-			protected function renderGroup_mouseMoveHandler(event:MouseEvent):void
+			private function draw(event:MouseEvent):void
 			{
-				if(sourceBitmap.source && outsideSourceFlag)
+				curMouseX = event.stageX - renderGroup.x;
+				curMouseY = event.stageY - renderGroup.y;
+				
+				canvasContainer.graphics.lineStyle(1, sampleColor, 0.5);
+				canvasContainer.graphics.moveTo(curMouseX, curMouseY);
+				
+				for(var i:int = 0; i < 20; ++i)
+					canvasContainer.graphics.lineTo(curMouseX + Math.random() * 40, curMouseY + Math.random() * 40);
+			}
+			
+			// ........................................................................................
+			
+			protected function renderGroup_mouseDownHandler(event:MouseEvent):void
+			{
+				if(sourceBitmap.source)
 				{
-					stagePoint.x = event.stageX;
-					stagePoint.y = event.stageY;
-					sourceLocal = sourceBitmap.globalToLocal(stagePoint);
-					
-					// clamp
-					if(sourceLocal.x < 0)
-						sourceLocal.x = 0;
-					else if(sourceLocal.x > sourceBitmap.source.bitmapData.width)
-						sourceLocal.x = sourceBitmap.source.bitmapData.width - 1;
-					if(sourceLocal.y < 0)
-						sourceLocal.y = 0;
-					else if(sourceLocal.y > sourceBitmap.source.bitmapData.height)
-						sourceLocal.y = sourceBitmap.source.bitmapData.height - 1;
-					
-					sampleColor = sourceBitmap.source.bitmapData.getPixel(sourceLocal.x, sourceLocal.y);
-					SolidColor(colorSampleRect.fill).color = sampleColor;
+					flushTimer.start();
+					draw(event);
 				}
 			}
 			
-			// ........................................................................................
+			protected function renderGroup_mouseUpHandler(event:MouseEvent):void
+			{
+				if(sourceBitmap.source)
+				{
+					flushTimer.stop();
+					flushToBitmap();
+				}
+			}
+			
+			protected function renderGroup_mouseMoveHandler(event:MouseEvent):void
+			{
+				if(sourceBitmap.source)
+				{
+					if(outsideSourceFlag)
+					{
+						stagePoint.x = event.stageX;
+						stagePoint.y = event.stageY;
+						sourceLocal = sourceBitmap.globalToLocal(stagePoint);
+						
+						// clamp
+						if(sourceLocal.x < 0)
+							sourceLocal.x = 0;
+						else if(sourceLocal.x > sourceBitmap.source.bitmapData.width)
+							sourceLocal.x = sourceBitmap.source.bitmapData.width - 1;
+						if(sourceLocal.y < 0)
+							sourceLocal.y = 0;
+						else if(sourceLocal.y > sourceBitmap.source.bitmapData.height)
+							sourceLocal.y = sourceBitmap.source.bitmapData.height - 1;
+						
+						sampleColor = sourceBitmap.source.bitmapData.getPixel(sourceLocal.x, sourceLocal.y);
+						SolidColor(colorSampleRect.fill).color = sampleColor;
+					}
+					
+					if(event.buttonDown)
+						draw(event);
+				}
+			}
 			
 			protected function renderGroup_mouseOverHandler(event:MouseEvent):void
 			{
@@ -213,7 +274,12 @@
 				{
 					sampleColor = sourceBitmap.source.bitmapData.getPixel(event.localX, event.localY);
 					SolidColor(colorSampleRect.fill).color = sampleColor;
+				
+					if(event.buttonDown)
+						draw(event);
 				}
+				
+				event.stopImmediatePropagation();
 			}
 			
 		]]>
@@ -242,7 +308,11 @@
 				mouseMove="renderGroup_mouseMoveHandler(event)"
 				mouseOut="renderGroup_mouseOutHandler(event)"
 				mouseOver="renderGroup_mouseOverHandler(event)"
+				mouseDown="renderGroup_mouseDownHandler(event)"
+				mouseUp="renderGroup_mouseUpHandler(event)"
 				>
+			
+			<s:BitmapImage id="flushBitmap" width="100%" height="100%"/>
 			
 			<s:Image id="sourceBitmap" 
 					 mouseMove="sourceBitmap_mouseMoveHandler(event)"
@@ -258,7 +328,10 @@
 		<s:HGroup width="100%" verticalAlign="baseline">
 			<s:HGroup width="100%" horizontalAlign="left">
 				<s:Rect id="colorSampleRect" width="10" height="10"/>
-				<s:Label id="output"/>
+				<s:Label id="output"
+						 color="0xacacac"
+						 fontFamily="Monaco" fontSize="9"
+						 />
 			</s:HGroup>	
 			
 			<s:HGroup width="100%" gap="20" horizontalAlign="right">	
@@ -266,7 +339,8 @@
 						 paddingTop="10" 
 						 color="0xacacac"
 						 fontFamily="Monaco" fontSize="9"
-						 width="87"/>
+						 width="87"
+						 />
 				
 				<s:Label id="fpsLabel" 
 					paddingTop="10" 
