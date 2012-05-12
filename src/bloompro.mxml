@@ -3,6 +3,7 @@
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   initialize="windowedApplication_initializeHandler(event)"
+					   creationComplete="windowedapplication_creationCompleteHandler(event)"
 					   usePreloader="false"
 					   backgroundAlpha="0"
 					   backgroundColor="#696969"
@@ -57,6 +58,17 @@
 			{
 				this.nativeWindow.maximize();
 				
+				var scope:Object = this;
+				ConsoleCommand.addCommand("exit", function ():void { scope.exit(); }, false);
+				ConsoleCommand.addCommand("open", openImage);
+				ConsoleCommand.addCommand("bristle", function ():void { });
+				ConsoleCommand.addCommand("brush", function ():void { });
+				ConsoleCommand.addCommand("source-alpha", function (alpha:Number):void { scope.sourceBitmap.alpha = alpha; });
+				ConsoleCommand.addCommand("frame-rate", function (frameRate:Number):void { scope.stage.frameRate = frameRate; });			
+			}
+			
+			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
+			{
 				var dropShadow:DropShadowFilter = new spark.filters.DropShadowFilter();
 				dropShadow.color = 0x000000;
 				dropShadow.alpha = 0.4;
@@ -66,9 +78,9 @@
 				input.filters = [dropShadow];
 				renderGroup.filters = [dropShadow];
 				
-				this.addEventListener(Event.ENTER_FRAME, windowedApplication_enterFrameHandler);
-				
 				input.setFocus();
+					
+				this.addEventListener(Event.ENTER_FRAME, windowedApplication_enterFrameHandler);
 			}
 			
 			private function windowedApplication_enterFrameHandler(event:Event):void
@@ -93,53 +105,16 @@
 				switch(event.keyCode)
 				{
 					case Keyboard.TAB:
+					
+						var partial:String = ConsoleCommand.autoComplete(input.text);
+						if(partial != null)
+							input.appendText(partial);
 						
-						switch(input.text)
-						{
-							case "bri": input.appendText("stle "); break;
-							case "bris": input.appendText("tle "); break;
-							case "brist": input.appendText("le "); break;
-							case "bristl": input.appendText("e "); break;
-							case "bristle": input.appendText(" "); break;
-							
-							case "bru": input.appendText("sh "); break;
-							case "brus": input.appendText("h "); break;
-							case "brush": input.appendText(" "); break;
-							
-							case "e": input.appendText("xit"); break;
-							case "ex": input.appendText("it"); break;
-							case "exi": input.appendText("t"); break;
-							
-							case "o": input.appendText("pen pic.jpg"); break;
-							case "op": input.appendText("en pic.jpg"); break;
-							case "ope": input.appendText("n pic.jpg"); break;
-							case "open": input.appendText(" pic.jpg"); break;
-						}
 						break;
 					
 					case Keyboard.ENTER:
 						
-						if(input.text == "exit")
-							this.exit();
-						
-						if(input.text.substring(0, 5) == "open ")
-						{
-							var userInputFileName:String = input.text.substring(5);
-							
-							var appDir:File = File.applicationDirectory;
-							var dirListing:Array = appDir.getDirectoryListing();
-							
-							for each(var file:File in dirListing)
-							{	
-								if(file.name == userInputFileName)
-								{
-									var loader:Loader = new Loader();
-									loader.contentLoaderInfo.addEventListener(Event.COMPLETE, imageLoadCompleteHandler);
-									loader.load(new URLRequest(file.url)); 
-								}
-							}
-						}
-						
+						ConsoleCommand.process(input.text);
 						input.text = "";
 						
 						break;
@@ -147,6 +122,22 @@
 			}
 			
 			// ........................................................................................
+			
+			private function openImage(fileName:String):void
+			{
+				var appDir:File = File.applicationDirectory;
+				var dirListing:Array = appDir.getDirectoryListing();
+				
+				for each(var file:File in dirListing)
+				{	
+					if(file.name == fileName)
+					{
+						var loader:Loader = new Loader();
+						loader.contentLoaderInfo.addEventListener(Event.COMPLETE, imageLoadCompleteHandler);
+						loader.load(new URLRequest(file.url)); 
+					}
+				}
+			}
 			
 			private function imageLoadCompleteHandler(event:Event):void
 			{
@@ -167,6 +158,8 @@
 				flushTimer.addEventListener(TimerEvent.TIMER, tick);
 				flushTimer.start();
 			}
+			
+			// ........................................................................................
 			
 			private function tick(event:TimerEvent):void
 			{
