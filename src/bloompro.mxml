@@ -4,11 +4,12 @@
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   initialize="windowedApplication_initializeHandler(event)"
 					   creationComplete="windowedapplication_creationCompleteHandler(event)"
+					   keyDown="windowedapplication_keyDownHandler(event)"
 					   usePreloader="false"
 					   backgroundAlpha="0"
 					   backgroundColor="#696969"
-					   showStatusBar="false"
-					   displayStateChange="fadeIn.play()" 
+					   showStatusBar="true"
+					   displayStateChange="fadeIn.play()"
 					   frameRate="60"
 					   >
 	
@@ -52,6 +53,8 @@
 			
 			private var flushTimer:Timer = new Timer(1000);
 			
+			private var keyBinds:Array = new Array();
+			
 			// ........................................................................................
 			
 			protected function windowedApplication_initializeHandler(event:FlexEvent):void
@@ -65,6 +68,7 @@
 				ConsoleCommand.addCommand("brush", function ():void { });
 				ConsoleCommand.addCommand("source-alpha", function (alpha:Number):void { scope.sourceBitmap.alpha = alpha; });
 				ConsoleCommand.addCommand("frame-rate", function (frameRate:Number):void { scope.stage.frameRate = frameRate; });			
+				ConsoleCommand.addCommand("bind-key", bindKey);
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -98,17 +102,53 @@
 				}
 			}
 			
+			protected function windowedapplication_keyDownHandler(event:KeyboardEvent):void
+			{
+				if(event.commandKey)
+				{
+					switch(event.keyCode)
+					{
+						case Keyboard.L:
+							
+							input.setFocus();
+							
+							break;
+					}
+				}
+				else
+				{
+					if(keyBinds[event.charCode])
+						ConsoleCommand.process(keyBinds[event.charCode]);
+				}
+			}
+			
 			// ........................................................................................
 			
-			protected function inputKeyDown(event:KeyboardEvent):void
+			private function bindKey(key:String, input:String):void
 			{
+				keyBinds[key.charCodeAt()] = input;
+			}
+			
+			protected function inputKeyDown(event:KeyboardEvent):void
+			{	
 				switch(event.keyCode)
 				{
-					case Keyboard.TAB:
+					case Keyboard.ESCAPE:
+						
+						renderGroup.setFocus();
+						
+						break;
 					
-						var partial:String = ConsoleCommand.autoComplete(input.text);
-						if(partial != null)
-							input.appendText(partial);
+					case Keyboard.TAB:
+						
+						if(input.text.length == 0)
+							renderGroup.setFocus();
+						else
+						{
+							var partial:String = ConsoleCommand.autoComplete(input.text);
+							if(partial != null)
+								input.appendText(partial);
+						}
 						
 						break;
 					
@@ -119,6 +159,8 @@
 						
 						break;
 				}
+				
+				event.stopImmediatePropagation();
 			}
 			
 			// ........................................................................................
@@ -143,7 +185,7 @@
 			{
 				var bitmap:Bitmap = event.currentTarget.content as Bitmap;
 				sourceBitmap.source = bitmap;
-				sourceBitmap.alpha = 0.15;
+				//sourceBitmap.alpha = 0.15;
 				
 				flushBitmap.source = new Bitmap(new BitmapData(renderGroup.width, renderGroup.height, false, 0xffffff));
 				
@@ -182,14 +224,16 @@
 				canvasContainer.graphics.lineStyle(1, sampleColor, 0.5);
 				canvasContainer.graphics.moveTo(curMouseX, curMouseY);
 				
-				for(var i:int = 0; i < 20; ++i)
-					canvasContainer.graphics.lineTo(curMouseX + Math.random() * 40, curMouseY + Math.random() * 40);
+				for(var i:int = 0; i < 50; ++i)
+					canvasContainer.graphics.lineTo(curMouseX - 10 + Math.random() * 20, curMouseY - 10 + Math.random() * 20);
 			}
 			
 			// ........................................................................................
 			
 			protected function renderGroup_mouseDownHandler(event:MouseEvent):void
 			{
+				renderGroup.setFocus();
+					
 				if(sourceBitmap.source)
 				{
 					flushTimer.start();
