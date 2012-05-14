@@ -9,18 +9,8 @@
 					   backgroundAlpha="0"
 					   backgroundColor="#696969"
 					   showStatusBar="true"
-					   displayStateChange="fadeIn.play()"
 					   frameRate="60"
 					   >
-	
-	<fx:Declarations>
-		<s:Parallel id="fadeIn">
-			<s:Animate target="{this}" duration="2000">
-				<s:SimpleMotionPath property="backgroundAlpha" valueFrom="0" valueTo="1"/>
-			</s:Animate>
-			<s:Fade targets="{[vgroup, input, renderGroup]}" alphaFrom="0" alphaTo="1" duration="2000" startDelay="1000"/>
-		</s:Parallel>
-	</fx:Declarations>
 	
 	<fx:Script>
 		<![CDATA[
@@ -52,6 +42,7 @@
 			private var curMouseY:Number  = -1;
 			
 			private var flushTimer:Timer = new Timer(1000);
+			private var statusTimer:Timer = new Timer(2000, 1);
 			
 			private var keyBinds:Array = new Array();
 			
@@ -69,6 +60,8 @@
 				ConsoleCommand.addCommand("source-alpha", function (alpha:Number):void { scope.sourceBitmap.alpha = alpha; });
 				ConsoleCommand.addCommand("frame-rate", function (frameRate:Number):void { scope.stage.frameRate = frameRate; });			
 				ConsoleCommand.addCommand("bind-key", bindKey);
+				ConsoleCommand.addCommand("save-key-binds", saveKeyBinds);
+				ConsoleCommand.addCommand("load-key-binds", loadKeyBinds);
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -85,6 +78,9 @@
 				input.setFocus();
 					
 				this.addEventListener(Event.ENTER_FRAME, windowedApplication_enterFrameHandler);
+				statusTimer.addEventListener(TimerEvent.TIMER_COMPLETE, function (event:TimerEvent):void {
+					status = "";
+				});
 			}
 			
 			private function windowedApplication_enterFrameHandler(event:Event):void
@@ -123,6 +119,57 @@
 			}
 			
 			// ........................................................................................
+			
+			private function loadKeyBinds(fileName:String):void
+			{
+				if(fileName == "")
+				{
+					status = "! specify a file name";
+					statusTimer.start();
+					return;
+				}
+				
+				var file:File = new File(File.applicationDirectory.nativePath + File.separator + fileName);
+				if(file.exists)
+				{
+					var fs:FileStream = new FileStream();
+					
+					fs.open(file, FileMode.READ);
+					
+					var fullBindListing:String = fs.readUTFBytes(fs.bytesAvailable);
+					var tokens:Array = fullBindListing.split("\n");
+					
+					// bind-key 
+					for each(var input:String in tokens)
+					{
+						// assumed input; will blow up otherwise
+						var key:String = input.substr("bind-key ".length, 1);
+						keyBinds[key.charCodeAt()] = input.substring("bind-key x \"".length, input.length-1); // remove double quotes
+					}
+					
+					fs.close();
+				}
+			}
+			
+			private function saveKeyBinds(fileName:String):void
+			{	
+				if(fileName == "")
+				{
+					status = "! specify a file name";
+					statusTimer.start();
+					return;
+				}
+				
+				var file:File = new File(File.applicationDirectory.nativePath + File.separator + fileName);
+				var fs:FileStream = new FileStream();
+				
+				fs.open(file, FileMode.WRITE);
+				
+				for (var key:String in keyBinds)
+					fs.writeUTFBytes(StringUtil.substitute("bind-key {0} \"{1}\"\n", String.fromCharCode(key), keyBinds[key]));
+				
+				fs.close();
+			}
 			
 			private function bindKey(key:String, input:String):void
 			{
@@ -173,7 +220,7 @@
 				for each(var file:File in dirListing)
 				{	
 					if(file.name == fileName)
-					{
+					{	
 						var loader:Loader = new Loader();
 						loader.contentLoaderInfo.addEventListener(Event.COMPLETE, imageLoadCompleteHandler);
 						loader.load(new URLRequest(file.url)); 
@@ -182,10 +229,9 @@
 			}
 			
 			private function imageLoadCompleteHandler(event:Event):void
-			{
+			{	
 				var bitmap:Bitmap = event.currentTarget.content as Bitmap;
 				sourceBitmap.source = bitmap;
-				//sourceBitmap.alpha = 0.15;
 				
 				flushBitmap.source = new Bitmap(new BitmapData(renderGroup.width, renderGroup.height, false, 0xffffff));
 				
@@ -324,13 +370,11 @@
 	
 	<s:VGroup id="vgroup" 
 			  width="100%" height="100%"
-			  alpha="0"
 			  paddingBottom="40" paddingLeft="40" paddingRight="40" paddingTop="40"
 			  >
 		
 		<s:TextInput id="input" 
 					 width="100%" 
-					 alpha="0"
 					 focusEnabled="false"
 					 fontFamily="Monaco"
 					 fontSize="11"
@@ -339,7 +383,6 @@
 	
 		<s:SkinnableContainer
 				id="renderGroup"
-				alpha="0"
 				width="100%" height="100%"
 				backgroundColor="{canvasBackgroundColor}"
 				mouseMove="renderGroup_mouseMoveHandler(event)"
@@ -365,10 +408,6 @@
 		<s:HGroup width="100%" verticalAlign="baseline">
 			<s:HGroup width="100%" horizontalAlign="left">
 				<s:Rect id="colorSampleRect" width="10" height="10"/>
-				<s:Label id="output"
-						 color="0xacacac"
-						 fontFamily="Monaco" fontSize="9"
-						 />
 			</s:HGroup>	
 			
 			<s:HGroup width="100%" gap="20" horizontalAlign="right">	
