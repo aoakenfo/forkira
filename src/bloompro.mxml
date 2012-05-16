@@ -14,6 +14,9 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import brush.Brush;
+			import brush.Brush1;
+			
 			import mx.events.FlexEvent;
 			import mx.graphics.SolidColor;
 			import mx.utils.StringUtil;
@@ -36,15 +39,13 @@
 			private var stagePoint:Point = new Point();
 			private var sampleColor:uint = 0;
 			
-			private var prevMouseX:Number = -1;
-			private var prevMouseY:Number = -1;
-			private var curMouseX:Number  = -1;
-			private var curMouseY:Number  = -1;
-			
 			private var flushTimer:Timer = new Timer(1000);
 			private var statusTimer:Timer = new Timer(2000, 1);
 			
 			private var keyBinds:Array = new Array();
+			
+			private var brushes:Vector.<Brush> = new Vector.<Brush>();
+			private var brush1:Brush = null;
 			
 			// ........................................................................................
 			
@@ -62,6 +63,17 @@
 				ConsoleCommand.addCommand("bind-key", bindKey);
 				ConsoleCommand.addCommand("save-key-binds", saveKeyBinds);
 				ConsoleCommand.addCommand("load-key-binds", loadKeyBinds);
+				ConsoleCommand.addCommand("add-brush1", function ():void {
+					
+					brush1 = new Brush1();
+					brushes.push(brush1);
+					
+				});
+				ConsoleCommand.addCommand("brush1.line-width", function (value:Number):void {
+					
+					brush1.lineWidth = value;
+					
+				});
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -264,14 +276,13 @@
 			
 			private function draw(event:MouseEvent):void
 			{
-				curMouseX = event.stageX - renderGroup.x;
-				curMouseY = event.stageY - renderGroup.y;
-				
-				canvasContainer.graphics.lineStyle(1, sampleColor, 0.5);
-				canvasContainer.graphics.moveTo(curMouseX, curMouseY);
-				
-				for(var i:int = 0; i < 50; ++i)
-					canvasContainer.graphics.lineTo(curMouseX - 10 + Math.random() * 20, curMouseY - 10 + Math.random() * 20);
+				for each(var br:Brush in brushes)
+				{
+					br.draw(canvasContainer.graphics,
+							sampleColor,
+							event.stageX - renderGroup.x,
+							event.stageY - renderGroup.y);
+				}
 			}
 			
 			// ........................................................................................
