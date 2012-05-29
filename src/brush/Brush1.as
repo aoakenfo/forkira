@@ -9,10 +9,9 @@ package brush
 		
 		private var _radius:Number;
 		private var _halfRadius:Number;
-		public var iterations:uint = 50;
 		private var i:uint = 0;
 		
-		public function radius(value:Number):void
+		override public function set radius(value:Number):void
 		{
 			_radius = value;
 			_halfRadius = value * 0.5;
@@ -20,7 +19,7 @@ package brush
 		
 		public function Brush1()
 		{
-			_radius = 20;
+			_radius = 5;
 			_halfRadius = _radius * 0.5;
 		}
 		

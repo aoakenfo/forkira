@@ -47,6 +47,8 @@
 			private var brushes:Vector.<Brush> = new Vector.<Brush>();
 			private var brush1:Brush = null;
 			
+			private var lastCommandInput:String = "";
+			
 			// ........................................................................................
 			
 			protected function windowedApplication_initializeHandler(event:FlexEvent):void
@@ -57,7 +59,6 @@
 				ConsoleCommand.addCommand("exit", function ():void { scope.exit(); }, false);
 				ConsoleCommand.addCommand("open", openImage);
 				ConsoleCommand.addCommand("bristle", function ():void { });
-				ConsoleCommand.addCommand("brush", function ():void { });
 				ConsoleCommand.addCommand("source-alpha", function (alpha:Number):void { scope.sourceBitmap.alpha = alpha; });
 				ConsoleCommand.addCommand("frame-rate", function (frameRate:Number):void { scope.stage.frameRate = frameRate; });			
 				ConsoleCommand.addCommand("bind-key", bindKey);
@@ -69,10 +70,36 @@
 					brushes.push(brush1);
 					
 				});
-				ConsoleCommand.addCommand("brush1.line-width", function (value:Number):void {
+				ConsoleCommand.addCommand("brush1.line-width", function (value:Number):void { brush1.lineWidth = value; });
+				ConsoleCommand.addCommand("brush1.alpha", function (value:Number):void { brush1.alpha = value; });
+				ConsoleCommand.addCommand("brush1.radius", function (value:Number):void { brush1.radius = value; });
+				ConsoleCommand.addCommand("brush1.iterations", function (value:Number):void { brush1.iterations = value; });
+				ConsoleCommand.addCommand("brush1.automate", function (offset:Number):void {
 					
-					brush1.lineWidth = value;
-					
+					var t:Timer = new Timer(0.25, int(scope.sourceBitmap.height / offset));
+					var i:int = 0;
+					var j:int = 0;
+					// brush.line-width 10, brush1.radius 20, brush1.iterations 5 brush1.automate 20 brush1.alpha 0.2
+					t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
+						
+						for(; i < scope.sourceBitmap.width; i += offset)
+						{
+							for each(var br:Brush in scope.brushes)
+							{
+									br.draw(scope.canvasContainer.graphics,
+											scope.sourceBitmap.source.bitmapData.getPixel(i, j),
+											scope.sourceBitmap.x + i,
+											scope.sourceBitmap.y + j);
+							}
+						}
+						
+						i = 0;
+						j += offset;
+						
+						scope.flushToBitmap();
+					});
+						
+					t.start();
 				});
 			}
 			
@@ -212,10 +239,15 @@
 						break;
 					
 					case Keyboard.ENTER:
-						
+						lastCommandInput = input.text;
 						ConsoleCommand.process(input.text);
 						input.text = "";
 						
+						break;
+					
+					case Keyboard.UP:
+						input.appendText(lastCommandInput);
+
 						break;
 				}
 				
