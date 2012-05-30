@@ -19,6 +19,8 @@ package brush
 		
 		public function Brush1()
 		{
+			super();
+			
 			_radius = 5;
 			_halfRadius = _radius * 0.5;
 		}

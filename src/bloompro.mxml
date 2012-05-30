@@ -16,6 +16,7 @@
 		<![CDATA[
 			import brush.Brush;
 			import brush.Brush1;
+			import brush.Brush2;
 			
 			import mx.events.FlexEvent;
 			import mx.graphics.SolidColor;
@@ -44,8 +45,7 @@
 			
 			private var keyBinds:Array = new Array();
 			
-			private var brushes:Vector.<Brush> = new Vector.<Brush>();
-			private var brush1:Brush = null;
+			private var brushes:Array = new Array();
 			
 			private var lastCommandInput:String = "";
 			
@@ -56,30 +56,70 @@
 				this.nativeWindow.maximize();
 				
 				var scope:Object = this;
+				
 				ConsoleCommand.addCommand("exit", function ():void { scope.exit(); }, false);
 				ConsoleCommand.addCommand("open", openImage);
-				ConsoleCommand.addCommand("bristle", function ():void { });
+				ConsoleCommand.addCommand("frame-rate", function (frameRate:Number):void { 
+					if(frameRate == 0)
+					{
+						status = "! frame-rate cannot be 0";
+						statusTimer.start();
+						return;
+					}
+					scope.stage.frameRate = frameRate; 
+				});			
 				ConsoleCommand.addCommand("source-alpha", function (alpha:Number):void { scope.sourceBitmap.alpha = alpha; });
-				ConsoleCommand.addCommand("frame-rate", function (frameRate:Number):void { scope.stage.frameRate = frameRate; });			
 				ConsoleCommand.addCommand("bind-key", bindKey);
 				ConsoleCommand.addCommand("save-key-binds", saveKeyBinds);
 				ConsoleCommand.addCommand("load-key-binds", loadKeyBinds);
-				ConsoleCommand.addCommand("add-brush1", function ():void {
+				ConsoleCommand.addCommand("clear", function():void {
 					
-					brush1 = new Brush1();
-					brushes.push(brush1);
-					
+					scope.canvasContainer.graphics.beginFill(0xffffff, 1);
+					scope.canvasContainer.graphics.drawRect(0, 0, scope.canvasContainer.width, scope.canvasContainer.height);
+					scope.canvasContainer.graphics.endFill();
+					scope.flushBitmap.source.bitmapData.draw(canvasContainer);
+					scope.canvasContainer.graphics.clear();
 				});
-				ConsoleCommand.addCommand("brush1.line-width", function (value:Number):void { brush1.lineWidth = value; });
-				ConsoleCommand.addCommand("brush1.alpha", function (value:Number):void { brush1.alpha = value; });
-				ConsoleCommand.addCommand("brush1.radius", function (value:Number):void { brush1.radius = value; });
-				ConsoleCommand.addCommand("brush1.iterations", function (value:Number):void { brush1.iterations = value; });
-				ConsoleCommand.addCommand("brush1.automate", function (offset:Number):void {
+				
+				ConsoleCommand.addCommand("load-brush", function (brushNum:Number):void {
+					
+					if(brushNum == 0)
+					{
+						status = "! specify a brush #";
+						statusTimer.start();
+						return;
+					}
+					
+					var brush:Brush = null;
+					
+					switch(brushNum)
+					{
+						case 1: brush = new Brush1(); break;
+						case 2: brush = new Brush2(); break;
+					}
+					
+					brushes[brushNum] = brush;
+				});
+				ConsoleCommand.addCommand("line-width-brush", function (brushNum:Number, value:Number):void { brushes[brushNum].lineWidth = value; });
+				ConsoleCommand.addCommand("alpha-brush", function (brushNum:Number, value:Number):void { brushes[brushNum].alpha = value; });
+				ConsoleCommand.addCommand("radius-brush", function (brushNum:Number, value:Number):void { brushes[brushNum].radius = value; });
+				ConsoleCommand.addCommand("iterations-brush", function (brushNum:Number, value:Number):void { brushes[brushNum].iterations = value; });
+				ConsoleCommand.addCommand("automate-brush", function (offset:Number):void {
+					
+					if(offset == 0)
+					{
+						status = "! specify a non-zero offset";
+						statusTimer.start();
+						return;
+					}
+					
+					for each(var b:Brush in brushes)
+						b.mouseDown(scope.sourceBitmap.x, scope.sourceBitmap.y);
 					
 					var t:Timer = new Timer(0.25, int(scope.sourceBitmap.height / offset));
 					var i:int = 0;
 					var j:int = 0;
-					// brush.line-width 10, brush1.radius 20, brush1.iterations 5 brush1.automate 20 brush1.alpha 0.2
+					
 					t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
 						
 						for(; i < scope.sourceBitmap.width; i += offset)
@@ -240,7 +280,15 @@
 					
 					case Keyboard.ENTER:
 						lastCommandInput = input.text;
-						ConsoleCommand.process(input.text);
+						try
+						{
+							ConsoleCommand.process(input.text);
+						}
+						catch(e:Error)
+						{
+							status = "! incorrect params";
+							statusTimer.start();	
+						}
 						input.text = "";
 						
 						break;
@@ -258,6 +306,13 @@
 			
 			private function openImage(fileName:String):void
 			{
+				if(fileName == "")
+				{
+					status = "! specify a file name";
+					statusTimer.start();
+					return;
+				}
+				
 				var appDir:File = File.applicationDirectory;
 				var dirListing:Array = appDir.getDirectoryListing();
 				
@@ -326,6 +381,10 @@
 				if(sourceBitmap.source)
 				{
 					flushTimer.start();
+					
+					for each(var b:Brush in brushes)
+						b.mouseDown(event.stageX - renderGroup.x, event.stageY - renderGroup.y);
+					
 					draw(event);
 				}
 			}
