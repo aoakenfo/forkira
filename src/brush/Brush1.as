@@ -4,35 +4,50 @@ package brush
 
 	public class Brush1 extends Brush
 	{
-		protected var prevMouseX:Number = -1;
-		protected var prevMouseY:Number = -1;
-		
-		private var _radius:Number;
-		private var _halfRadius:Number;
-		private var i:uint = 0;
-		
-		override public function set radius(value:Number):void
-		{
-			_radius = value;
-			_halfRadius = value * 0.5;
-		}
-		
 		public function Brush1()
 		{
 			super();
 			
-			_radius = 5;
-			_halfRadius = _radius * 0.5;
+			radius = 5;
+			centerOffset = radius * 0.5;
+		}
+	
+		override public function set radius(value:Number):void
+		{
+			_radius = value;
+			centerOffset = value * 0.5;
 		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):void
+		override public function drawOp(graphics:Graphics, op:Object):void
+		{
+			graphics.lineStyle(op.lw, op.sc, op.a);
+			
+			graphics.moveTo(op.mx, op.my);
+			
+			for(var i:int = 0; i < op.i; ++i)
+				graphics.lineTo(op.mx - op.co + Math.random() * op.r, op.my - op.co + Math.random() * op.r);	
+		}
+		
+		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
 		{
 			graphics.lineStyle(lineWidth, sampleColor, alpha);
 			
 			graphics.moveTo(mouseX, mouseY);
 			
-			for(i = 0; i < iterations; ++i)
-				graphics.lineTo(mouseX - _halfRadius + Math.random() * _radius, mouseY - _halfRadius + Math.random() * _radius);
+			for(var i:int = 0; i < iterations; ++i)
+				graphics.lineTo(mouseX - centerOffset + Math.random() * radius, mouseY - centerOffset + Math.random() * radius);
+			
+			return {
+				t:1,
+				lw:lineWidth,
+				a:alpha,
+				sc:sampleColor,
+				mx:mouseX,
+				my:mouseY,
+				r:radius,
+				co:centerOffset,
+				i:iterations
+			};
 		}
 	}
 }

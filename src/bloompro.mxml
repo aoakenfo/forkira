@@ -49,98 +49,32 @@
 			
 			private var lastCommandInput:String = "";
 			
+			//private var ops:Array = new Array();
+			private var opsStream:FileStream = null;
+			private var opsFile:File = null;
+			
 			// ........................................................................................
 			
 			protected function windowedApplication_initializeHandler(event:FlexEvent):void
 			{
 				this.nativeWindow.maximize();
 				
-				var scope:Object = this;
-				
-				ConsoleCommand.addCommand("exit", function ():void { scope.exit(); }, false);
+				ConsoleCommand.addCommand("exit", _exit, false);
+				ConsoleCommand.addCommand("load-drawing", loadDrawingOverwrite);
+				ConsoleCommand.addCommand("save-drawing", saveDrawing);
 				ConsoleCommand.addCommand("open", openImage);
-				ConsoleCommand.addCommand("frame-rate", function (frameRate:Number):void { 
-					if(frameRate == 0)
-					{
-						status = "! frame-rate cannot be 0";
-						statusTimer.start();
-						return;
-					}
-					scope.stage.frameRate = frameRate; 
-				});			
-				ConsoleCommand.addCommand("source-alpha", function (alpha:Number):void { scope.sourceBitmap.alpha = alpha; });
+				ConsoleCommand.addCommand("frame-rate", _frameRate);			
+				ConsoleCommand.addCommand("source-alpha", sourceAlpha);
 				ConsoleCommand.addCommand("bind-key", bindKey);
 				ConsoleCommand.addCommand("save-key-binds", saveKeyBinds);
 				ConsoleCommand.addCommand("load-key-binds", loadKeyBinds);
-				ConsoleCommand.addCommand("clear", function():void {
-					
-					scope.canvasContainer.graphics.beginFill(0xffffff, 1);
-					scope.canvasContainer.graphics.drawRect(0, 0, scope.canvasContainer.width, scope.canvasContainer.height);
-					scope.canvasContainer.graphics.endFill();
-					scope.flushBitmap.source.bitmapData.draw(canvasContainer);
-					scope.canvasContainer.graphics.clear();
-				});
-				
-				ConsoleCommand.addCommand("load-brush", function (brushNum:Number):void {
-					
-					if(brushNum == 0)
-					{
-						status = "! specify a brush #";
-						statusTimer.start();
-						return;
-					}
-					
-					var brush:Brush = null;
-					
-					switch(brushNum)
-					{
-						case 1: brush = new Brush1(); break;
-						case 2: brush = new Brush2(); break;
-					}
-					
-					brushes[brushNum] = brush;
-				});
-				ConsoleCommand.addCommand("line-width-brush", function (brushNum:Number, value:Number):void { brushes[brushNum].lineWidth = value; });
-				ConsoleCommand.addCommand("alpha-brush", function (brushNum:Number, value:Number):void { brushes[brushNum].alpha = value; });
-				ConsoleCommand.addCommand("radius-brush", function (brushNum:Number, value:Number):void { brushes[brushNum].radius = value; });
-				ConsoleCommand.addCommand("iterations-brush", function (brushNum:Number, value:Number):void { brushes[brushNum].iterations = value; });
-				ConsoleCommand.addCommand("automate-brush", function (offset:Number):void {
-					
-					if(offset == 0)
-					{
-						status = "! specify a non-zero offset";
-						statusTimer.start();
-						return;
-					}
-					
-					for each(var b:Brush in brushes)
-						b.mouseDown(scope.sourceBitmap.x, scope.sourceBitmap.y);
-					
-					var t:Timer = new Timer(0.25, int(scope.sourceBitmap.height / offset));
-					var i:int = 0;
-					var j:int = 0;
-					
-					t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
-						
-						for(; i < scope.sourceBitmap.width; i += offset)
-						{
-							for each(var br:Brush in scope.brushes)
-							{
-									br.draw(scope.canvasContainer.graphics,
-											scope.sourceBitmap.source.bitmapData.getPixel(i, j),
-											scope.sourceBitmap.x + i,
-											scope.sourceBitmap.y + j);
-							}
-						}
-						
-						i = 0;
-						j += offset;
-						
-						scope.flushToBitmap();
-					});
-						
-					t.start();
-				});
+				ConsoleCommand.addCommand("clear", clear);
+				ConsoleCommand.addCommand("load-brush", loadBrush);
+				ConsoleCommand.addCommand("line-width-brush", lineWidthBrush);
+				ConsoleCommand.addCommand("alpha-brush", alphaBrush);
+				ConsoleCommand.addCommand("radius-brush", radiusBrush);
+				ConsoleCommand.addCommand("iterations-brush", iterationsBrush);
+				ConsoleCommand.addCommand("automate-brush", automateBrush);
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -175,6 +109,25 @@
 					prevMillisecondCount = curMillisecondCount;
 					frameCount = 0;		
 				}
+			}
+			
+			private function _exit():void
+			{ 
+				if(opsStream != null)
+					opsStream.close();
+				
+				exit(); 
+			}
+			
+			private function _frameRate(frameRate:Number):void 
+			{ 
+				if(frameRate == 0)
+				{
+					status = "! frame-rate cannot be 0";
+					statusTimer.start();
+					return;
+				}
+				stage.frameRate = frameRate; 
 			}
 			
 			protected function windowedapplication_keyDownHandler(event:KeyboardEvent):void
@@ -313,8 +266,7 @@
 					return;
 				}
 				
-				var appDir:File = File.applicationDirectory;
-				var dirListing:Array = appDir.getDirectoryListing();
+				var dirListing:Array = File.applicationDirectory.getDirectoryListing();
 				
 				for each(var file:File in dirListing)
 				{	
@@ -332,7 +284,8 @@
 				var bitmap:Bitmap = event.currentTarget.content as Bitmap;
 				sourceBitmap.source = bitmap;
 				
-				flushBitmap.source = new Bitmap(new BitmapData(renderGroup.width, renderGroup.height, false, 0xffffff));
+				if(flushBitmap.source == null)
+					flushBitmap.source = new Bitmap(new BitmapData(renderGroup.width, renderGroup.height, false, 0xffffff));
 				
 				var centerX:Number = renderGroup.width / 2;
 				var centerY:Number = renderGroup.height / 2;
@@ -344,6 +297,92 @@
 				
 				flushTimer.addEventListener(TimerEvent.TIMER, tick);
 				flushTimer.start();
+				
+				if(opsStream == null)
+					openOpsStream();
+			}
+			
+			private function sourceAlpha(alpha:Number):void 
+			{ 
+				sourceBitmap.alpha = alpha;
+			}
+			
+			private function openOpsStream(append:Boolean=false):void
+			{
+				if(opsStream != null)
+					opsStream.close();
+				
+				opsFile = new File(File.applicationDirectory.nativePath + File.separator + "temp.ops");
+				opsStream = new FileStream();
+				opsStream.objectEncoding = ObjectEncoding.AMF3;
+				
+				if(append)
+					opsStream.open(opsFile, FileMode.APPEND);
+				else
+					opsStream.open(opsFile, FileMode.WRITE);
+			}
+			
+			private function saveDrawing(fileName:String):void
+			{
+				if(fileName == "")
+				{
+					status = "! specify a file name";
+					statusTimer.start();
+					return;
+				}
+				
+				if(opsStream != null)
+				{
+					opsStream.close();
+					opsFile.copyTo(
+						new File(File.applicationDirectory.nativePath + File.separator + 
+							fileName + ".ops"),
+						true
+					);
+					opsStream.open(opsFile, FileMode.APPEND);
+				}
+			}
+			
+			// ........................................................................................
+			
+			private function loadBrush(brushNum:Number):void
+			{
+				if(brushNum == 0)
+				{
+					status = "! specify a brush #";
+					statusTimer.start();
+					return;
+				}
+				
+				var brush:Brush = null;
+				
+				switch(brushNum)
+				{
+					case 1: brush = new Brush1(); break;
+					case 2: brush = new Brush2(); break;
+				}
+				
+				brushes[brushNum] = brush;
+			}
+			
+			private function lineWidthBrush(brushNum:Number, value:Number):void
+			{ 
+				brushes[brushNum].lineWidth = value;
+			}
+			
+			private function alphaBrush(brushNum:Number, value:Number):void 
+			{ 
+				brushes[brushNum].alpha = value; 
+			}
+			
+			private function radiusBrush(brushNum:Number, value:Number):void
+			{
+				brushes[brushNum].radius = value;
+			}
+			
+			private function iterationsBrush(brushNum:Number, value:Number):void 
+			{ 
+				brushes[brushNum].iterations = value;
 			}
 			
 			// ........................................................................................
@@ -355,20 +394,144 @@
 			
 			private function flushToBitmap():void
 			{
-				flushBitmap.source.bitmapData.draw(canvasContainer);	
+				if(flushBitmap.source != null)
+				{
+					flushBitmap.source.bitmapData.draw(canvasContainer);	
+					canvasContainer.graphics.clear();
+				}
+			}
+			
+			private function clear():void
+			{
+				canvasContainer.graphics.beginFill(0xffffff, 1);
+				canvasContainer.graphics.drawRect(0, 0, canvasContainer.width, canvasContainer.height);
+				canvasContainer.graphics.endFill();
+				if(flushBitmap.source != null)
+					flushBitmap.source.bitmapData.draw(canvasContainer);
 				canvasContainer.graphics.clear();
+				
+				openOpsStream();
 			}
 			
 			// ........................................................................................
+			
+			private function automateBrush(offset:Number):void {
+				
+				if(offset == 0)
+				{
+					status = "! specify a non-zero offset";
+					statusTimer.start();
+					return;
+				}
+				
+				if(opsStream == null)
+					openOpsStream();
+				
+				for each(var b:Brush in brushes)
+					b.mouseDown(sourceBitmap.x, sourceBitmap.y);
+				
+				var t:Timer = new Timer(0.25, int(sourceBitmap.height / offset));
+				var i:int = 0;
+				var j:int = 0;
+				
+				t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
+					
+					for(; i < sourceBitmap.width; i += offset)
+					{
+						for each(var br:Brush in brushes)
+						{
+							opsStream.writeObject(
+								br.draw(canvasContainer.graphics,
+									sourceBitmap.source.bitmapData.getPixel(i, j),
+									sourceBitmap.x + i,
+									sourceBitmap.y + j)
+							);
+						}
+					}
+					
+					i = 0;
+					j += offset;
+					
+					flushToBitmap();
+				});
+				
+				t.start();
+			}
+			
+			private function loadDrawingOverwrite(fileName:String):void
+			{	
+				if(fileName == "")
+				{
+					status = "! specify a file name";
+					statusTimer.start();
+					return;
+				}
+				
+				clear();
+				
+				if(flushBitmap.source == null)
+					flushBitmap.source = new Bitmap(new BitmapData(renderGroup.width, renderGroup.height, false, 0xffffff));
+				
+				var file:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".ops");
+				opsStream.open(file, FileMode.READ);
+				
+				var tempBrushes:Array = new Array();
+				var tempOps:Array = new Array();
+				
+				while(opsStream.bytesAvailable > 0)
+					tempOps.push(opsStream.readObject());
+				
+				opsStream.close();
+				file.copyTo(
+					new File(File.applicationDirectory.nativePath + File.separator + "temp.ops"),
+					true
+				);
+				
+				openOpsStream(true);
+				
+				var interval:int = Math.min(2500, tempOps.length * 0.7);
+				var t:Timer = new Timer(0.1, interval);
+				var i:int = 0;
+				var offset:int = interval;
+				
+				t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
+					
+					for(; i < offset; ++i)
+					{
+						var op:Object = tempOps[i];
+						
+						if(op != null)
+						{
+							switch(op.t)
+							{
+								case 1:
+									if(tempBrushes[op.t] == null)
+										tempBrushes[op.t] = new Brush1();
+									break;
+							}
+							
+							tempBrushes[op.t].drawOp(canvasContainer.graphics, op);
+						}
+					}
+					
+					flushToBitmap();
+					
+					offset += interval;
+				});
+				
+				t.start();
+			}
 			
 			private function draw(event:MouseEvent):void
 			{
 				for each(var br:Brush in brushes)
 				{
-					br.draw(canvasContainer.graphics,
-							sampleColor,
-							event.stageX - renderGroup.x,
-							event.stageY - renderGroup.y);
+					opsStream.writeObject(
+						br.draw(canvasContainer.graphics,
+								sampleColor,
+								event.stageX - renderGroup.x,
+								event.stageY - renderGroup.y)
+					);
 				}
 			}
 			
@@ -395,6 +558,8 @@
 				{
 					flushTimer.stop();
 					flushToBitmap();
+					
+					openOpsStream(true);
 				}
 			}
 			
