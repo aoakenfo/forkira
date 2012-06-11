@@ -75,6 +75,8 @@
 				ConsoleCommand.addCommand("radius-brush", radiusBrush);
 				ConsoleCommand.addCommand("iterations-brush", iterationsBrush);
 				ConsoleCommand.addCommand("automate-brush", automateBrush);
+				ConsoleCommand.addCommand("save-brush-settings", saveBrushSettings);
+				ConsoleCommand.addCommand("load-brush-settings", loadBrushSettings);
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -415,8 +417,67 @@
 			
 			// ........................................................................................
 			
-			private function automateBrush(offset:Number):void {
+			private function loadBrushSettings(fileName:String):void
+			{
+				if(fileName == "")
+				{
+					status = "! specify a file name";
+					statusTimer.start();
+					return;
+				}
 				
+				var file:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".brs");
+				var fs:FileStream = new FileStream();
+				
+				fs.objectEncoding = ObjectEncoding.AMF3;
+				fs.open(file, FileMode.READ);
+				
+				var obj:Object = fs.readObject();
+				var br:Brush = null;
+				
+				switch(obj.brushNum)
+				{
+					case 1: br = new Brush1(); break;
+					case 2: br = new Brush2(); break;
+				}
+				
+				for(var prop:* in obj)
+					br[prop] = obj[prop];
+				
+				brushes[br.brushNum] = br;
+				
+				fs.close();
+			}
+			
+			private function saveBrushSettings(brushNum:Number, fileName:String):void
+			{
+				if(brushNum == 0)
+				{
+					status = "! specify brush number";
+					statusTimer.start();
+					return;
+				}
+				
+				if(fileName == "")
+				{
+					status = "! specify a file name";
+					statusTimer.start();
+					return;
+				}
+				
+				var file:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".brs");
+				var fs:FileStream = new FileStream();
+				
+				fs.objectEncoding = ObjectEncoding.AMF3;
+				fs.open(file, FileMode.WRITE);
+				
+				fs.writeObject(brushes[brushNum] as Brush);
+				
+				fs.close();
+			}
+			
+			private function automateBrush(offset:Number):void
+			{
 				if(offset == 0)
 				{
 					status = "! specify a non-zero offset";

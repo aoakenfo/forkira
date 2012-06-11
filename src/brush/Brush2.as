@@ -8,6 +8,8 @@ package brush
 		public function Brush2()
 		{
 			super();
+			
+			brushNum = 2;
 		}
 		
 		override public function mouseDown(mouseX:Number, mouseY:Number):void

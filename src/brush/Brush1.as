@@ -3,11 +3,12 @@ package brush
 	import flash.display.Graphics;
 
 	public class Brush1 extends Brush
-	{
+	{		
 		public function Brush1()
 		{
 			super();
 			
+			brushNum = 1;
 			radius = 5;
 			centerOffset = radius * 0.5;
 		}
