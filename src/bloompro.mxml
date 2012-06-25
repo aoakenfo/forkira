@@ -18,8 +18,10 @@
 			import brush.Brush1;
 			import brush.Brush2;
 			
+			import mx.controls.Alert;
 			import mx.events.FlexEvent;
 			import mx.graphics.SolidColor;
+			import mx.graphics.codec.PNGEncoder;
 			import mx.utils.StringUtil;
 			
 			import spark.filters.DropShadowFilter;
@@ -49,9 +51,10 @@
 			
 			private var lastCommandInput:String = "";
 			
-			//private var ops:Array = new Array();
 			private var opsStream:FileStream = null;
 			private var opsFile:File = null;
+			
+			private var frameWindowRect:Rect = new Rect();
 			
 			// ........................................................................................
 			
@@ -77,6 +80,8 @@
 				ConsoleCommand.addCommand("automate-brush", automateBrush);
 				ConsoleCommand.addCommand("save-brush-settings", saveBrushSettings);
 				ConsoleCommand.addCommand("load-brush-settings", loadBrushSettings);
+				ConsoleCommand.addCommand("export", export);
+				ConsoleCommand.addCommand("frame-window", _frameWindow);
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -141,6 +146,32 @@
 						case Keyboard.L:
 							
 							input.setFocus();
+							
+							break;
+						
+						case Keyboard.EQUAL:
+							
+							frameWindowRect.x -= 10;
+							frameWindowRect.y -= 10;
+							frameWindowRect.width += 20;
+							frameWindowRect.height += 20;
+							
+							frameWindow.graphics.clear();
+							frameWindow.graphics.lineStyle(1, 0x000000, 1.0, false, LineScaleMode.NONE);
+							frameWindow.graphics.drawRect(frameWindowRect.x, frameWindowRect.y, frameWindowRect.width, frameWindowRect.height);
+					
+							break;
+						
+						case Keyboard.MINUS:
+							
+							frameWindowRect.x += 10;
+							frameWindowRect.y += 10;
+							frameWindowRect.width -= 20;
+							frameWindowRect.height -= 20;
+							
+							frameWindow.graphics.clear();
+							frameWindow.graphics.lineStyle(1, 0x000000, 1.0, false, LineScaleMode.NONE);
+							frameWindow.graphics.drawRect(frameWindowRect.x, frameWindowRect.y, frameWindowRect.width, frameWindowRect.height);
 							
 							break;
 					}
@@ -345,6 +376,143 @@
 				}
 			}
 			
+			private function defaultFrameRect():void
+			{
+				var centerX:Number = renderGroup.width / 2;
+				var centerY:Number = renderGroup.height / 2;
+				var xOffset:Number = centerX - 320;
+				var yOffset:Number = centerY - 240;
+				
+				frameWindowRect.x = xOffset;
+				frameWindowRect.y = yOffset;
+				frameWindowRect.width = 640;
+				frameWindowRect.height = 480;
+			}
+			
+			private function _frameWindow(on:Number):void {
+				
+				if(on == 1)
+				{
+					if(sourceBitmap.source)
+					{
+						frameWindowRect.x = sourceBitmap.x;
+						frameWindowRect.y = sourceBitmap.y;
+						frameWindowRect.width = sourceBitmap.width;
+						frameWindowRect.height = sourceBitmap.height;
+					}
+					else
+						defaultFrameRect();
+					
+					frameWindow.graphics.lineStyle(1, 0x000000, 1.0, false, LineScaleMode.NONE);
+					frameWindow.graphics.drawRect(frameWindowRect.x, frameWindowRect.y, frameWindowRect.width, frameWindowRect.height);	
+				}
+				else
+					frameWindow.graphics.clear();
+			}
+			
+			private function export(fileName:String):void
+			{
+				if(fileName == "")
+				{
+					status = "! specify a file name";
+					statusTimer.start();
+					return;
+				}
+				
+				if(frameWindowRect.width == 0)
+					defaultFrameRect();
+				
+				// 41' x 27' = 12300 x 8100
+				var targetWidth:int = 12300;
+				var targetHeight:int = 8100;
+				var exportBitmap:Bitmap = new Bitmap(new BitmapData(targetWidth, targetHeight));
+				
+				var scaleX:Number = targetWidth  / frameWindowRect.width;
+				var scaleY:Number = targetHeight / frameWindowRect.height;
+				
+				if(opsStream != null)
+					opsStream.close();
+				else
+				{
+					opsFile = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".ops");
+					opsStream = new FileStream();
+					opsStream.objectEncoding = ObjectEncoding.AMF3;
+				}
+				
+				opsStream.open(opsFile, FileMode.READ);
+
+				var tempBrushes:Array = new Array();
+				var tempOps:Array = new Array();
+				
+				while(opsStream.bytesAvailable > 0)
+					tempOps.push(opsStream.readObject());
+				
+				opsStream.close();
+				
+				var divisions:int = 10;
+				var interval:int = int(tempOps.length / divisions);
+				var t:Timer = new Timer(0.01, divisions + 1);
+				var i:int = 0;
+				var offset:int = interval;
+				
+				t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
+					
+					for(; i < offset; ++i)
+					{
+						var op:Object = tempOps[i];
+						
+						if(op != null) 
+						{
+							switch(op.t)
+							{
+								case 1:  
+									if(tempBrushes[op.t] == null)
+										tempBrushes[op.t] = new Brush1();
+									break;
+							}
+					
+							tempBrushes[op.t].drawOp(canvasContainer.graphics, op)
+						}
+					}
+					
+					var m:Matrix = new Matrix();
+					
+					var centerX:Number = renderGroup.width / 2;
+					var centerY:Number = renderGroup.height / 2;
+					var xOffset:Number = centerX - (frameWindowRect.width  / 2);
+					var yOffset:Number = centerY - (frameWindowRect.height / 2);
+					m.translate(-xOffset, -yOffset);
+					
+					m.scale(scaleX, scaleY);
+					exportBitmap.bitmapData.draw(canvasContainer, m);
+					canvasContainer.graphics.clear();
+					
+					// TODO: LineScaleMode.NONE option
+					
+					offset += interval;
+					if(offset > tempOps.length)
+						offset = tempOps.length;
+					
+				});
+				
+				t.addEventListener(TimerEvent.TIMER_COMPLETE, function(event:TimerEvent):void {
+					
+					trace("encoding byte array...");
+					var png:PNGEncoder = new PNGEncoder();
+					var byteArray:ByteArray = png.encode(exportBitmap.bitmapData);
+					
+					trace("exporting file...");
+					var exportFile:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".png")
+					var fs:FileStream = new FileStream();
+					fs.openAsync(exportFile,FileMode.WRITE);
+					fs.writeBytes(byteArray);
+					fs.close();
+					trace("file exported");
+				});
+				
+				t.start();
+			}
+			
 			// ........................................................................................
 			
 			private function loadBrush(brushNum:Number):void
@@ -528,10 +696,13 @@
 					return;
 				}
 				
-				clear();
-				
 				if(flushBitmap.source == null)
 					flushBitmap.source = new Bitmap(new BitmapData(renderGroup.width, renderGroup.height, false, 0xffffff));
+				
+				if(opsStream != null)
+					opsStream.close();
+				else
+					opsStream = new FileStream();
 				
 				var file:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".ops");
 				opsStream.open(file, FileMode.READ);
@@ -550,8 +721,9 @@
 				
 				openOpsStream(true);
 				
-				var interval:int = Math.min(2500, tempOps.length * 0.7);
-				var t:Timer = new Timer(0.1, interval);
+				var divisions:int = 10;
+				var interval:int = int(tempOps.length / divisions);
+				var t:Timer = new Timer(0.01, divisions + 1);
 				var i:int = 0;
 				var offset:int = interval;
 				
@@ -729,6 +901,8 @@
 					 />
 			
 			<s:SpriteVisualElement id="canvasContainer"
+								   width="100%" height="100%"/>
+			<s:SpriteVisualElement id="frameWindow"
 								   width="100%" height="100%"/>
 		
 		</s:SkinnableContainer>
