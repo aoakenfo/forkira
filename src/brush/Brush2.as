@@ -18,16 +18,37 @@ package brush
 			lastMouseY = mouseY;
 		}
 		
+		override public function drawOp(graphics:Graphics, op:Object):void
+		{
+			graphics.lineStyle(op.lw, op.sc, op.a);
+			graphics.moveTo(op.lmx, op.lmy);
+			graphics.lineTo(op.mx, op.my);
+			
+			lastMouseX = op.mx;
+			lastMouseY = op.my;	
+		}
+		
 		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
 		{
 			graphics.lineStyle(lineWidth, sampleColor, alpha);
 			graphics.moveTo(lastMouseX, lastMouseY);
 			graphics.lineTo(mouseX, mouseY);
 			
+			var obj:Object = {
+				t:2,
+				lw:lineWidth,
+				sc:sampleColor,
+				a:alpha,
+				mx:mouseX,
+				my:mouseY,
+				lmx:lastMouseX,
+				lmy:lastMouseY
+			};
+			
 			lastMouseX = mouseX;
 			lastMouseY = mouseY;
 			
-			return null;
+			return obj;
 		}
 	}
 }

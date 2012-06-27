@@ -12,12 +12,6 @@ package brush
 			radius = 5;
 			centerOffset = radius * 0.5;
 		}
-	
-		override public function set radius(value:Number):void
-		{
-			_radius = value;
-			centerOffset = value * 0.5;
-		}
 		
 		override public function drawOp(graphics:Graphics, op:Object):void
 		{
@@ -41,8 +35,8 @@ package brush
 			return {
 				t:1,
 				lw:lineWidth,
-				a:alpha,
 				sc:sampleColor,
+				a:alpha,
 				mx:mouseX,
 				my:mouseY,
 				r:radius,

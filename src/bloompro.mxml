@@ -17,6 +17,9 @@
 			import brush.Brush;
 			import brush.Brush1;
 			import brush.Brush2;
+			import brush.Brush3;
+			import brush.Brush4;
+			import brush.Brush5;
 			
 			import mx.controls.Alert;
 			import mx.events.FlexEvent;
@@ -82,6 +85,8 @@
 				ConsoleCommand.addCommand("load-brush-settings", loadBrushSettings);
 				ConsoleCommand.addCommand("export", export);
 				ConsoleCommand.addCommand("frame-window", _frameWindow);
+				ConsoleCommand.addCommand("clear-all-brushes", clearAllBrushes, false);
+				ConsoleCommand.addCommand("clear-brush", clearBrush);
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -469,6 +474,26 @@
 									if(tempBrushes[op.t] == null)
 										tempBrushes[op.t] = new Brush1();
 									break;
+								
+								case 2:
+									if(tempBrushes[op.t] == null)
+										tempBrushes[op.t] = new Brush2();
+									break;
+								
+								case 3:
+									if(tempBrushes[op.t] == null)
+										tempBrushes[op.t] = new Brush3();
+									break;
+								
+								case 4:
+									if(tempBrushes[op.t] == null)
+										tempBrushes[op.t] = new Brush4();
+									break;
+								
+								case 5:
+									if(tempBrushes[op.t] == null)
+										tempBrushes[op.t] = new Brush5();
+									break;
 							}
 					
 							tempBrushes[op.t].drawOp(canvasContainer.graphics, op)
@@ -530,9 +555,22 @@
 				{
 					case 1: brush = new Brush1(); break;
 					case 2: brush = new Brush2(); break;
+					case 3: brush = new Brush3(); break;
+					case 4: brush = new Brush4(); break;
+					case 5: brush = new Brush5(); break;
 				}
 				
 				brushes[brushNum] = brush;
+			}
+			
+			private function clearBrush(brushNum:Number):void
+			{ 
+				delete(brushes[brushNum]);
+			}
+			
+			private function clearAllBrushes():void
+			{ 
+				brushes = new Array();
 			}
 			
 			private function lineWidthBrush(brushNum:Number, value:Number):void
@@ -607,6 +645,9 @@
 				{
 					case 1: br = new Brush1(); break;
 					case 2: br = new Brush2(); break;
+					case 3: br = new Brush3(); break;
+					case 4: br = new Brush4(); break;
+					case 5: br = new Brush5(); break;
 				}
 				
 				for(var prop:* in obj)
@@ -644,9 +685,9 @@
 				fs.close();
 			}
 			
-			private function automateBrush(offset:Number):void
+			private function automateBrush(offsetX:Number, offsetY:Number):void
 			{
-				if(offset == 0)
+				if(offsetX <= 0 || offsetY <= 0)
 				{
 					status = "! specify a non-zero offset";
 					statusTimer.start();
@@ -659,13 +700,13 @@
 				for each(var b:Brush in brushes)
 					b.mouseDown(sourceBitmap.x, sourceBitmap.y);
 				
-				var t:Timer = new Timer(0.25, int(sourceBitmap.height / offset));
+				var t:Timer = new Timer(0.25, int(sourceBitmap.height / offsetY));
 				var i:int = 0;
 				var j:int = 0;
 				
 				t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
 					
-					for(; i < sourceBitmap.width; i += offset)
+					for(; i < sourceBitmap.width; i += offsetX)
 					{
 						for each(var br:Brush in brushes)
 						{
@@ -679,7 +720,7 @@
 					}
 					
 					i = 0;
-					j += offset;
+					j += offsetY;
 					
 					flushToBitmap();
 				});
@@ -741,6 +782,26 @@
 									if(tempBrushes[op.t] == null)
 										tempBrushes[op.t] = new Brush1();
 									break;
+								
+								case 2:
+									if(tempBrushes[op.t] == null)
+										tempBrushes[op.t] = new Brush2();
+									break;
+								
+								case 3:
+									if(tempBrushes[op.t] == null)
+										tempBrushes[op.t] = new Brush3();
+									break;
+								
+								case 4:
+									if(tempBrushes[op.t] == null)
+										tempBrushes[op.t] = new Brush4();
+									break;
+								
+								case 5:
+									if(tempBrushes[op.t] == null)
+										tempBrushes[op.t] = new Brush5();
+									break;
 							}
 							
 							tempBrushes[op.t].drawOp(canvasContainer.graphics, op);
@@ -750,6 +811,8 @@
 					flushToBitmap();
 					
 					offset += interval;
+					if(offset > tempOps.length)
+						offset = tempOps.length;
 				});
 				
 				t.start();
