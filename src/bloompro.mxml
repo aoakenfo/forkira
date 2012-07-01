@@ -18,7 +18,19 @@
 			import brush.Brush1;
 			import brush.Brush10;
 			import brush.Brush11;
+			import brush.Brush12;
+			import brush.Brush13;
+			import brush.Brush14;
+			import brush.Brush15;
+			import brush.Brush16;
+			import brush.Brush17;
+			import brush.Brush18;
+			import brush.Brush19;
 			import brush.Brush2;
+			import brush.Brush20;
+			import brush.Brush21;
+			import brush.Brush22;
+			import brush.Brush23;
 			import brush.Brush3;
 			import brush.Brush4;
 			import brush.Brush5;
@@ -52,6 +64,18 @@
 			private var b9:Brush9;
 			private var b10:Brush10;
 			private var b11:Brush11;
+			private var b12:Brush12;
+			private var b13:Brush13;
+			private var b14:Brush14;
+			private var b15:Brush15;
+			private var b16:Brush16;
+			private var b17:Brush17;
+			private var b18:Brush18;
+			private var b19:Brush19;
+			private var b20:Brush20;
+			private var b21:Brush21;
+			private var b22:Brush22;
+			private var b23:Brush23;
 			
 			private var frameCount:uint = 0;
 			private var curMillisecondCount:uint = 0;

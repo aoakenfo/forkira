@@ -40,10 +40,10 @@ package brush
 		
 		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
 		{		
-			mouseChangeVectorX = /*bitmapHolder.mouseX*/mouseX - lastMouseX;
-			mouseChangeVectorY = /*bitmapHolder.mouseY*/mouseY - lastMouseY;
+			mouseChangeVectorX = mouseX - lastMouseX;
+			mouseChangeVectorY = mouseY - lastMouseY;
 			
-			//lineThickness = Math.random() * 20;
+			lineThickness = Math.random() * 20;
 			
 			dx = mouseChangeVectorX;
 			dy = mouseChangeVectorY;
