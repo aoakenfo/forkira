@@ -38,8 +38,14 @@ package brush
 		private var controlY2:Number;
 		private var lastColour:uint;
 		
+		override public function mouseDown(mouseX:Number, mouseY:Number):void
+		{
+			lastMouseX = mouseX;
+			lastMouseY = mouseY;
+		}
+		
 		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
-		{		
+		{	
 			mouseChangeVectorX = mouseX - lastMouseX;
 			mouseChangeVectorY = mouseY - lastMouseY;
 			

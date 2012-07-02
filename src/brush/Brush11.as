@@ -72,8 +72,18 @@ package brush
 			return (newRed << 16) | (newGreen << 8) | (newBlue);
 		}
 		
+		override public function mouseDown(mouseX:Number, mouseY:Number):void
+		{
+			lastMouseX = mouseX;
+			lastMouseY = mouseY;
+			smoothedMouseX = mouseX;
+			smoothedMouseY = mouseY;
+		}
+		
 		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
 		{
+			var skip:Boolean = lastMouseX == mouseX;
+			
 			if(lastMouseX == -1)
 			{
 				lastMouseX = mouseX;
@@ -166,7 +176,8 @@ package brush
 			//var stroke:Boolean = Math.random() > 0.7;
 			//if(stroke)
 			//	graphics.lineStyle(1,sampleColor, 0.75);
-			
+			if(!skip)
+			{
 			graphics.beginFill(sampleColor, 0.95);
 			graphics.moveTo(lastSmoothedMouseX + L0Cos0, lastSmoothedMouseY + L0Sin0);
 			
@@ -203,7 +214,7 @@ package brush
 			graphics.lineTo(smoothedMouseX - L1Cos1, smoothedMouseY - L1Sin1);
 			graphics.lineTo(smoothedMouseX + L1Cos1, smoothedMouseY + L1Sin1);	
 			graphics.endFill();
-			
+			}
 			lastSmoothedMouseX = smoothedMouseX;
 			lastSmoothedMouseY = smoothedMouseY;
 			lastRotation = lineRotation;

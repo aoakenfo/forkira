@@ -3,13 +3,13 @@ package brush
 	import flash.display.Graphics;
 	import flash.geom.Point;
 
-	public class Brush23 extends Brush
+	public class Brush24 extends Brush
 	{
-		public function Brush23()
+		public function Brush24()
 		{
 			super();
 			
-			brushNum = 23;
+			brushNum = 24;
 		}
 		
 		// TODO: move into base class
@@ -22,7 +22,7 @@ package brush
 		private var dist:Number;
 		private var startX:Number;
 		private var startY:Number;
-		private var lineThickness:Number = 15;//5;//50;//5;//20;
+		private var lineThickness:Number = 30;//5;//50;//5;//20;
 		private var lineRotation:Number;
 		private var lastRotation:Number;
 		private var L0Sin0:Number;
@@ -48,10 +48,10 @@ package brush
 		private var smoothingFactor:Number = 0.3;  //Should be set to something between 0 and 1.  Higher numbers mean less smoothing.
 		
 		private var targetLineThickness:Number;
-		private var minThickness:Number = 0.2;
+		private var minThickness:Number = 0.4;
 		private var thicknessFactor:Number = 0.25;
 		private var lastThickness:Number = 0;
-		private var thicknessSmoothingFactor:Number = 0.3;
+		private var thicknessSmoothingFactor:Number = 0.6;
 		
 		private var tipTaperFactor:Number = 0.8;
 		private var offsetX:Number = 0;
@@ -72,21 +72,23 @@ package brush
 			return (newRed << 16) | (newGreen << 8) | (newBlue);
 		}
 		
+		override public function mouseDown(mouseX:Number, mouseY:Number):void
+		{
+			lastMouseX = mouseX;
+			lastMouseY = mouseY;
+			smoothedMouseX = mouseX;
+			smoothedMouseY = mouseY;
+		}
+		
 		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
 		{
-			for(var i:int = 0; i < 10; ++i)
-			{
-				mouseX += Math.random() * 10 * (Math.random() > 0.5 ? -1 : 1);
-				mouseY += Math.random() * 10 * (Math.random() > 0.5 ? -1 : 1);
-				
-			if(lastMouseX == -1)
-			{
-				lastMouseX = mouseX;
-				lastMouseY = mouseY;
-				currentOffsetX = mouseX;
-				currentOffsetY = mouseY;
-			}
+			var skip:Boolean = lastMouseX == mouseX;
 			
+			for(var i:int = 0; i < 3; ++i)
+			{
+				//mouseX += Math.random() * 10 * (Math.random() > 0.5 ? -1 : 1);
+				//mouseY += Math.random() * 10 * (Math.random() > 0.5 ? -1 : 1);
+								
 			var dx2:Number = mouseX - lastMouseX;
 			var dy2:Number = mouseY - lastMouseY;
 			var dist2:Number = Math.sqrt(dx2*dx2 + dy2*dy2);
@@ -104,18 +106,25 @@ package brush
 			var interp:Point = Point.interpolate(firstPoint, secondPoint,f); // 1 <--> 0
 			//var interp:Point = Point.interpolate(secondPoint, firstPoint,f); // 1 <--> 0
 			
+			if(Math.random() > 0.5)
+			{
 			currentOffsetX = mouseX - interp.x;
 			currentOffsetY = mouseY - interp.y;
-			
+			}
 			var localX:int = mouseX + currentOffsetX;
 			var localY:int = mouseY + currentOffsetY;
 			
+			if(Math.random() > 0.5)
+			{
 			smoothedMouseX = smoothedMouseX + smoothingFactor*(localX - smoothedMouseX);
 			smoothedMouseY = smoothedMouseY + smoothingFactor*(localY - smoothedMouseY);
+			}
 			
+			if(Math.random() > 0.5)
+			{
 			mouseChangeVectorX = localX - lastMouseX;
 			mouseChangeVectorY = localY - lastMouseY;
-			
+			}
 			var diff:int = mouseChangeVectorX * lastMouseChangeVectorX + mouseChangeVectorY * lastMouseChangeVectorY;
 			if (diff < 0)
 			{
@@ -136,9 +145,10 @@ package brush
 			
 			//We use a similar smoothing technique to change the thickness of the line, so that it doesn't
 			//change too abruptly.
-			targetLineThickness = minThickness + thicknessFactor * dist;
+			targetLineThickness = minThickness + thicknessFactor * dist + (Math.random() * 10);
 			lineThickness = lastThickness + thicknessSmoothingFactor * (targetLineThickness - lastThickness);
-			
+			if(Math.random() > 0.5)
+			{
 			sin0 = Math.sin(lastRotation);
 			cos0 = Math.cos(lastRotation);
 			sin1 = Math.sin(lineRotation);
@@ -155,7 +165,7 @@ package brush
 			controlY1 = lastSmoothedMouseY + L0Sin0 + controlVecY;
 			controlX2 = lastSmoothedMouseX - L0Cos0 + controlVecX;
 			controlY2 = lastSmoothedMouseY - L0Sin0 + controlVecY;
-			
+			}
 			//			if(sampleColorList.length > 0)
 			//			{
 			//				if(currentIndex >= sampleColorList.length)
@@ -171,17 +181,20 @@ package brush
 			//if(stroke)
 			//	graphics.lineStyle(1,sampleColor, 0.75);
 			
+			if(!skip)
+			{
 			graphics.beginFill(sampleColor, 0.95);
 			graphics.moveTo(lastSmoothedMouseX + L0Cos0, lastSmoothedMouseY + L0Sin0);
 			
-			graphics.lineStyle(1,darkenColor(sampleColor, 0.6), 1);
+			if(Math.random() > 0.5)
+				graphics.lineStyle(1,darkenColor(sampleColor, 0.6), 1);
 			graphics.curveTo(controlX1,controlY1, smoothedMouseX + L1Cos1, smoothedMouseY + L1Sin1);
 			
-			//graphics.lineStyle();
-			graphics.lineStyle(1,darkenColor(sampleColor, 0.6), 1);
+			graphics.lineStyle();
 			graphics.lineTo(smoothedMouseX - L1Cos1, smoothedMouseY - L1Sin1);
 			
-			graphics.lineStyle(1,darkenColor(sampleColor, 0.6), 1);
+			if(Math.random() > 0.5)
+				graphics.lineStyle(1,darkenColor(sampleColor, 0.6), 1);
 			graphics.curveTo(controlX2, controlY2, lastSmoothedMouseX - L0Cos0, lastSmoothedMouseY - L0Sin0);
 			
 			graphics.lineStyle();
@@ -208,7 +221,7 @@ package brush
 			graphics.lineTo(smoothedMouseX - L1Cos1, smoothedMouseY - L1Sin1);
 			graphics.lineTo(smoothedMouseX + L1Cos1, smoothedMouseY + L1Sin1);	
 			graphics.endFill();
-			
+			}
 			lastSmoothedMouseX = smoothedMouseX;
 			lastSmoothedMouseY = smoothedMouseY;
 			lastRotation = lineRotation;
@@ -218,7 +231,8 @@ package brush
 			
 			lastThickness = lineThickness;
 			}
-			return {t:23};
+			
+			return {t:24};
 		}
 	}
 }

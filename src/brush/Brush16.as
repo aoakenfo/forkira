@@ -74,6 +74,34 @@ package brush
 			var newBlue:Number = Math.min(255, b*factor);
 			
 			return (newRed << 16) | (newGreen << 8) | (newBlue);
+		}private function map(value:Number,
+							  low1:Number,
+							  high1:Number,
+							  low2:Number = 0,
+							  high2:Number = 1):Number {
+			//if the value and the 1st range low are equal to
+			// the new value must be low2
+			if (value == low1) {
+				return low2;
+			}
+			
+			//normalize both sets to a 0-? range
+			var range1:Number = high1 - low1;
+			var range2:Number = high2 - low2;
+			
+			//normalize the value to the new normalized range
+			var result:Number = value - low1;
+			
+			//define the range as a percentage (0.0 to 1.0)
+			var ratio:Number = result / range1;
+			
+			//find the value in the new normalized-range
+			result = ratio * range2;
+			
+			//un-normalize the value in the new range
+			result += low2;
+			
+			return result;
 		}
 		
 		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
@@ -137,7 +165,7 @@ package brush
 			
 			//targetLineThickness = minThickness + thicknessFactor * dist;
 			//lineThickness = lastThickness + thicknessSmoothingFactor * (targetLineThickness - lastThickness);
-			thicknessFactor = 0.15;
+			thicknessFactor = 0.25;
 			lineThickness = dist * thicknessFactor;
 			
 			sin0 = Math.sin(lastRotation);
@@ -191,28 +219,29 @@ package brush
 			else
 				mat.translate(smoothedMouseX, smoothedMouseY);
 			
+			accumulatedDist += dist;
+			//var opacity:Number = 1 - map(accumulatedDist, 0, 1000, 0, 1);
+			//accumulatedDist = 0;
+			
 			graphics.beginGradientFill(GradientType.LINEAR, // type
 				[sampleColor, lastColour], // colors
 				[alpha, alpha], // alphas
 				[0, 255], // ratios
 				mat);
 			
-			accumulatedDist += dist;
-			//opacity = 1 - map(accumulatedDist, 0, 1000, 0, 1);
-			
 			lastColour = sampleColor;
 			
 			graphics.moveTo(cx0, cy0);
-			graphics.lineStyle();
-			//graphics.lineStyle(1,darkenColor(color, 0.6), opacity);
+			//graphics.lineStyle();
+			graphics.lineStyle(1,darkenColor(sampleColor, 0.6), 1);
 			graphics.curveTo(controlX1,controlY1, cx1, cy1);
 			
 			graphics.lineTo(cx2, cy2);
 			
-			//graphics.lineStyle(1,darkenColor(color, 0.6), opacity);
+			//graphics.lineStyle(1,darkenColor(sampleColor, 0.6), 1);
 			graphics.curveTo(controlX2, controlY2, cx3, cy3);
 			
-			graphics.lineStyle();
+			//graphics.lineStyle();
 			graphics.lineTo(cx0, cy0);
 			
 			graphics.endFill();

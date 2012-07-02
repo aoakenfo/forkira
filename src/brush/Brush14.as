@@ -74,8 +74,18 @@ package brush
 			return (newRed << 16) | (newGreen << 8) | (newBlue);
 		}
 		
+		override public function mouseDown(mouseX:Number, mouseY:Number):void
+		{
+			lastMouseX = mouseX;
+			lastMouseY = mouseY;
+			smoothedMouseX = mouseX;
+			smoothedMouseY = mouseY;
+		}
+			
 		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
 		{
+			var skip:Boolean = lastMouseX == mouseX;
+			
 //			if(lastMouseX == -1)
 //			{
 //				lastMouseX = mouseX;
@@ -194,28 +204,30 @@ package brush
 			
 			graphics.beginGradientFill(GradientType.LINEAR, // type
 				[sampleColor, lastColour], // colors
-				[0.25,0.25], // alphas
+				[alpha, alpha], // alphas
 				[0, 255], // ratios
 				mat);
 			
 			lastColour = sampleColor;
+			//if(!skip)
+			{
+			graphics.lineStyle(1, 0x000000, 1, true);
 			
 			graphics.moveTo(cx0, cy0);
-			
-			graphics.lineStyle(1,darkenColor(sampleColor, alpha), alpha);
 			graphics.curveTo(controlX1,controlY1, cx1, cy1);
 			
 			graphics.lineStyle();
 			graphics.lineTo(cx2, cy2);
 			
-			graphics.lineStyle(1,darkenColor(sampleColor, alpha), alpha);
+			if(Math.random() > 0.3)
+			graphics.lineStyle(1, 0x000000, 1, true);
 			graphics.curveTo(controlX2, controlY2, cx3, cy3);
 			
 			graphics.lineStyle();
 			graphics.lineTo(cx0, cy0);
 			
 			graphics.endFill();
-			
+			}
 			lastSmoothedMouseX = smoothedMouseX;
 			lastSmoothedMouseY = smoothedMouseY;
 			lastRotation = lineRotation;

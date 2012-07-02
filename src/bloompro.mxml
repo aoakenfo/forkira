@@ -31,6 +31,8 @@
 			import brush.Brush21;
 			import brush.Brush22;
 			import brush.Brush23;
+			import brush.Brush24;
+			import brush.Brush25;
 			import brush.Brush3;
 			import brush.Brush4;
 			import brush.Brush5;
@@ -76,6 +78,8 @@
 			private var b21:Brush21;
 			private var b22:Brush22;
 			private var b23:Brush23;
+			private var b24:Brush24;
+			private var b25:Brush25;
 			
 			private var frameCount:uint = 0;
 			private var curMillisecondCount:uint = 0;
@@ -836,6 +840,9 @@
 			{
 				if(sourceBitmap.source)
 				{
+					for each(var b:Brush in brushes)
+						b.mouseUp(event.stageX - renderGroup.x, event.stageY - renderGroup.y);
+					
 					flushTimer.stop();
 					flushToBitmap();
 					
