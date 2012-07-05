@@ -2,6 +2,8 @@ package brush
 {
 	import flash.display.Graphics;
 	import flash.geom.Point;
+	
+	import mx.collections.ArrayList;
 
 	public class Brush23 extends Brush
 	{
@@ -72,7 +74,7 @@ package brush
 			return (newRed << 16) | (newGreen << 8) | (newBlue);
 		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
+		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
 		{
 			for(var i:int = 0; i < 10; ++i)
 			{

@@ -4,6 +4,8 @@ package brush
 	import flash.display.Graphics;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
+	
+	import mx.collections.ArrayList;
 
 	public class Brush16 extends Brush
 	{
@@ -63,6 +65,8 @@ package brush
 		
 		private var accumulatedDist:Number = 0;
 		
+		private var currentIndex:int = 0;
+		
 		private function darkenColor(c:uint, factor:Number):uint
 		{
 			var r:Number = (c >> 16);
@@ -104,7 +108,7 @@ package brush
 			return result;
 		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
+		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
 		{
 //			if(lastMouseX == -1)
 //			{
@@ -185,16 +189,16 @@ package brush
 			controlX2 = lastSmoothedMouseX - L0Cos0 + controlVecX;
 			controlY2 = lastSmoothedMouseY - L0Sin0 + controlVecY;
 			
-//			if(colorList.length > 0)
-//			{
-//				if(currentIndex >= colorList.length)
-//					currentIndex = colorList.length - 1; // should adjust currentIndex on delete event instead
-//				
-//				color = colorList.getItemAt(currentIndex).fill.color;
-//				++currentIndex;
-//				if(currentIndex > colorList.length - 1)
-//					currentIndex = 0;
-//			}
+			if(colorList != null && colorList.length > 0)
+			{
+				if(currentIndex >= colorList.length)
+					currentIndex = colorList.length - 1; // should adjust currentIndex on delete event instead
+				
+				sampleColor = colorList.getItemAt(currentIndex).fill.color;
+				++currentIndex;
+				if(currentIndex > colorList.length - 1)
+					currentIndex = 0;
+			}
 			
 			var cx0:int = lastSmoothedMouseX + L0Cos0;
 			var cy0:int = lastSmoothedMouseY + L0Sin0;

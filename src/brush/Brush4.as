@@ -1,6 +1,8 @@
 package brush
 {
 	import flash.display.Graphics;
+	
+	import mx.collections.ArrayList;
 
 	public class Brush4 extends Brush
 	{
@@ -22,7 +24,7 @@ package brush
 			graphics.curveTo(op.mx + op.co, op.my + op.co, op.mx + (Math.random() * op.co), op.my + (Math.random() * op.co));
 		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
+		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
 		{
 			graphics.lineStyle(lineWidth, sampleColor, alpha);
 			graphics.beginFill(sampleColor, alpha);

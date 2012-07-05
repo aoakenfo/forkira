@@ -2,6 +2,8 @@ package brush
 {
 	import flash.display.Graphics;
 	import flash.geom.Point;
+	
+	import mx.collections.ArrayList;
 
 	public class Brush24 extends Brush
 	{
@@ -80,7 +82,7 @@ package brush
 			smoothedMouseY = mouseY;
 		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
+		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
 		{
 			var skip:Boolean = lastMouseX == mouseX;
 			

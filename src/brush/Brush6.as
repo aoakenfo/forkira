@@ -1,6 +1,8 @@
 package brush
 {
 	import flash.display.Graphics;
+	
+	import mx.collections.ArrayList;
 
 	public class Brush6 extends Brush
 	{
@@ -44,7 +46,7 @@ package brush
 			lastMouseY = mouseY;
 		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
+		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
 		{	
 			mouseChangeVectorX = mouseX - lastMouseX;
 			mouseChangeVectorY = mouseY - lastMouseY;

@@ -1,6 +1,8 @@
 package brush
 {
 	import flash.display.Graphics;
+	
+	import mx.collections.ArrayList;
 
 	public class Brush22 extends Brush
 	{
@@ -11,7 +13,7 @@ package brush
 			brushNum = 22;
 		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
+		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
 		{
 			var w:int = 20;
 			var h:int = 20;

@@ -3,6 +3,8 @@ package brush
 {
 	import flash.display.Graphics;
 	
+	import mx.collections.ArrayList;
+	
 	public class Brush9 extends Brush
 	{
 		public function Brush9()
@@ -53,7 +55,7 @@ package brush
 		private var lastThickness:Number = 0;
 		private var thicknessSmoothingFactor:Number = 0.3;
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
+		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
 		{
 			smoothedMouseX = smoothedMouseX + smoothingFactor*(mouseX - smoothedMouseX);
 			smoothedMouseY = smoothedMouseY + smoothingFactor*(mouseY - smoothedMouseY);

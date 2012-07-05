@@ -2,6 +2,8 @@ package brush
 {
 	import flash.display.Graphics;
 	import flash.events.MouseEvent;
+	
+	import mx.collections.ArrayList;
 
 	public class Brush
 	{
@@ -25,7 +27,7 @@ package brush
 		public function mouseDown(mouseX:Number, mouseY:Number):void { }
 		public function mouseUp(mouseX:Number, mouseY:Number):void { }
 		public function drawOp(graphics:Graphics, op:Object):void { }
-		public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object { return null; }
+		public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object { return null; }
 		
 		protected function toRad(a:Number):Number
 		{

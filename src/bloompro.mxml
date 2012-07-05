@@ -43,12 +43,15 @@
 			
 			import flash.utils.getDefinitionByName;
 			
+			import mx.collections.ArrayList;
 			import mx.controls.Alert;
 			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
 			import mx.graphics.SolidColor;
 			import mx.graphics.codec.PNGEncoder;
 			import mx.utils.StringUtil;
 			
+			import spark.events.IndexChangeEvent;
 			import spark.filters.DropShadowFilter;
 			import spark.skins.spark.ImageSkin;
 			
@@ -108,6 +111,8 @@
 			
 			private var frameWindowRect:Rect = new Rect();
 			
+			[Bindable] private var colorList:ArrayList = new ArrayList();
+			
 			// ........................................................................................
 			
 			protected function windowedApplication_initializeHandler(event:FlexEvent):void
@@ -136,6 +141,7 @@
 				ConsoleCommand.addCommand("frame-window", _frameWindow);
 				ConsoleCommand.addCommand("clear-all-brushes", clearAllBrushes, false);
 				ConsoleCommand.addCommand("clear-brush", clearBrush);
+				ConsoleCommand.addCommand("clear-palette", function():void { colorList = new ArrayList(); }, false);
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -148,6 +154,7 @@
 				dropShadow.distance = 5;
 				input.filters = [dropShadow];
 				renderGroup.filters = [dropShadow];
+				list.filters = [dropShadow];
 				
 				input.setFocus();
 					
@@ -814,7 +821,8 @@
 						br.draw(canvasContainer.graphics,
 								sampleColor,
 								event.stageX - renderGroup.x,
-								event.stageY - renderGroup.y)
+								event.stageY - renderGroup.y,
+								colorList)
 					);
 				}
 			}
@@ -912,11 +920,41 @@
 					sampleColor = sourceBitmap.source.bitmapData.getPixel(event.localX, event.localY);
 					SolidColor(colorSampleRect.fill).color = sampleColor;
 				
+					if(event.controlKey)
+					{
+						var r:Rect = new Rect();
+						r.width = 20;
+						r.height = 20;
+						r.fill = new SolidColor(sampleColor);
+						colorList.addItem(r);
+					}
+					
 					if(event.buttonDown)
 						draw(event);
 				}
 				
 				event.stopImmediatePropagation();
+			}
+			
+			protected function list_changeHandler(event:IndexChangeEvent):void
+			{
+				var currentIndx:int = event.currentTarget.selectedIndex;
+				var currentDataItem:Object = event.currentTarget.selectedItem;
+			}
+			
+			protected function list_keyDownHandler(event:KeyboardEvent):void
+			{
+				//TODO: shift click delete selection
+				if(event.charCode == 8 && list.selectedIndex != -1) // delete key
+				{
+					var lastIndex:int = list.selectedIndex;
+					colorList.removeItemAt(lastIndex);
+					
+					if(lastIndex < colorList.length - 1)
+						list.selectedIndex = lastIndex;
+					else if(colorList.length > 0)
+						list.selectedIndex = colorList.length - 1;
+				}
 			}
 			
 		]]>
@@ -960,6 +998,26 @@
 								   width="100%" height="100%"/>
 		
 		</s:SkinnableContainer>
+		
+		<s:List id="list"
+				tabFocusEnabled="false"
+				itemRenderer="spark.skins.spark.DefaultComplexItemRenderer"
+				horizontalCenter="0"
+				verticalCenter="0"
+				dataProvider="{ colorList }"
+				change="list_changeHandler(event)"
+				keyDown="list_keyDownHandler(event)"
+				allowMultipleSelection="true"
+				width="100%"
+				height="40">
+			<s:layout>
+				<s:TileLayout id="tile"
+							  requestedRowCount="1"
+							  horizontalGap="0"
+							  verticalGap="0"
+							  />
+			</s:layout>
+		</s:List>
 		
 		<s:HGroup width="100%" verticalAlign="baseline">
 			<s:HGroup width="100%" horizontalAlign="left">

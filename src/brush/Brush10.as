@@ -2,6 +2,8 @@ package brush
 {
 	import flash.display.Graphics;
 	
+	import mx.collections.ArrayList;
+	
 	public class Brush10 extends Brush
 	{
 		public function Brush10()
@@ -54,7 +56,7 @@ package brush
 		
 		private var tipTaperFactor:Number = 0.8;
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
+		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
 		{
 			smoothedMouseX = smoothedMouseX + smoothingFactor*(mouseX - smoothedMouseX);
 			smoothedMouseY = smoothedMouseY + smoothingFactor*(mouseY - smoothedMouseY);

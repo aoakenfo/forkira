@@ -1,6 +1,8 @@
 package brush
 {
 	import flash.display.Graphics;
+	
+	import mx.collections.ArrayList;
 
 	public class Brush7 extends Brush
 	{
@@ -44,7 +46,7 @@ package brush
 		private var lastSmoothedMouseY:Number = 0;
 		private var smoothingFactor:Number = 0.3;  //Should be set to something between 0 and 1.  Higher numbers mean less smoothing.
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number):Object
+		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
 		{		
 			smoothedMouseX = smoothedMouseX + smoothingFactor*(mouseX - smoothedMouseX);
 			smoothedMouseY = smoothedMouseY + smoothingFactor*(mouseY - smoothedMouseY);
