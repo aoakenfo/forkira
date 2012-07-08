@@ -1,7 +1,6 @@
 package brush
 {
 	import flash.display.Graphics;
-	import flash.events.MouseEvent;
 	
 	import mx.collections.ArrayList;
 

@@ -528,6 +528,7 @@
 							{
 								var BrushClass:Class = getDefinitionByName("brush.Brush" + op.t) as Class;
 								tempBrushes[op.t] = new BrushClass();
+								tempBrushes[op.t].sourceBitmap = sourceBitmap;
 							}
 					
 							tempBrushes[op.t].drawOp(canvasContainer.graphics, op)
@@ -585,6 +586,7 @@
 				
 				var BrushClass:Class = getDefinitionByName("brush.Brush" + brushNum) as Class;
 				brushes[brushNum] = new BrushClass();
+				brushes[brushNum].sourceBitmap = sourceBitmap;
 			}
 			
 			private function clearBrush(brushNum:Number):void
@@ -666,6 +668,7 @@
 				
 				var BrushClass:Class = getDefinitionByName("brush.Brush" + obj.brushNum) as Class;
 				var br:Brush = new BrushClass();
+				br.sourceBitmap = sourceBitmap;
 				
 				for(var prop:* in obj)
 					br[prop] = obj[prop];
@@ -731,7 +734,9 @@
 								br.draw(canvasContainer.graphics,
 									sourceBitmap.source.bitmapData.getPixel(i, j),
 									sourceBitmap.x + i,
-									sourceBitmap.y + j)
+									sourceBitmap.y + j,
+									null
+								)
 							);
 						}
 					}
@@ -797,6 +802,7 @@
 							{
 								var BrushClass:Class = getDefinitionByName("brush.Brush" + op.t) as Class;
 								tempBrushes[op.t] = new BrushClass();
+								tempBrushes[op.t].sourceBitmap = sourceBitmap;
 							}
 							
 							tempBrushes[op.t].drawOp(canvasContainer.graphics, op);

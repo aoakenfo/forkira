@@ -1,12 +1,17 @@
 package brush
 {
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.Graphics;
-	import flash.events.MouseEvent;
 	
 	import mx.collections.ArrayList;
+	
+	import spark.components.Image;
 
 	public class Brush
 	{
+		public var sourceBitmap:Image = null;
+		
 		public var brushNum:Number = -1;
 		public var lineWidth:Number = 1;
 		public var alpha:Number = 0.5;
