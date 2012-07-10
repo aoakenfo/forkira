@@ -61,19 +61,6 @@ package brush
 		private var currentOffsetX:Number = 0;
 		private var currentOffsetY:Number = 0;
 		
-		private function darkenColor(c:uint, factor:Number):uint
-		{
-			var r:Number = (c >> 16);
-			var g:Number = (c >> 8) & 0xFF;
-			var b:Number = c & 0xFF;
-			
-			var newRed:Number = Math.min(255, r*factor);
-			var newGreen:Number = Math.min(255, g*factor);
-			var newBlue:Number = Math.min(255, b*factor);
-			
-			return (newRed << 16) | (newGreen << 8) | (newBlue);
-		}
-		
 		override public function mouseDown(mouseX:Number, mouseY:Number):void
 		{
 			lastMouseX = mouseX;

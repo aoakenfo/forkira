@@ -142,6 +142,13 @@
 				ConsoleCommand.addCommand("clear-all-brushes", clearAllBrushes, false);
 				ConsoleCommand.addCommand("clear-brush", clearBrush);
 				ConsoleCommand.addCommand("clear-palette", function():void { colorList = new ArrayList(); }, false);
+				ConsoleCommand.addCommand("randomize-offset", function (brushNum:Number, value:Boolean):void {
+					
+					brushes[brushNum].randomizeOffset = value;
+				});
+				ConsoleCommand.addCommand("plus-minus-offset-range", function (brushNum:Number, value:Number):void {
+					brushes[brushNum].plusMinusOffsetRange = value;
+				});
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -587,6 +594,8 @@
 				var BrushClass:Class = getDefinitionByName("brush.Brush" + brushNum) as Class;
 				brushes[brushNum] = new BrushClass();
 				brushes[brushNum].sourceBitmap = sourceBitmap;
+				brushes[brushNum].renderGroupOffsetX = renderGroup.x;
+				brushes[brushNum].renderGroupOffsetY = renderGroup.y;
 			}
 			
 			private function clearBrush(brushNum:Number):void
@@ -926,7 +935,7 @@
 					sampleColor = sourceBitmap.source.bitmapData.getPixel(event.localX, event.localY);
 					SolidColor(colorSampleRect.fill).color = sampleColor;
 				
-					if(event.controlKey)
+					if(event.controlKey && event.shiftKey)
 					{
 						var r:Rect = new Rect();
 						r.width = 20;
