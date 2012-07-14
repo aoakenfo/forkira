@@ -34,6 +34,7 @@ package brush
 		public function mouseUp(mouseX:Number, mouseY:Number):void { }
 		public function drawOp(graphics:Graphics, op:Object):void { }
 		public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object { return null; }
+		public function draw2(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array { return null; }
 		
 		protected function toRad(a:Number):Number
 		{

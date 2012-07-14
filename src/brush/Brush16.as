@@ -15,6 +15,8 @@ package brush
 		public var plusMinusOffsetRange:Number = 45;
 		public var renderGroupOffsetX:Number = 0;
 		public var renderGroupOffsetY:Number = 0;
+		public var lineStyleEnabled:Boolean = false;
+		public var sampleColor:Number = 0;
 		
 		public function Brush16()
 		{
@@ -22,7 +24,7 @@ package brush
 			
 			brushNum = 16;
 			
-			addBristles(5);
+			addBristles(15);
 		}
 		
 		override public function addBristles(numBristles:Number):void
@@ -100,8 +102,52 @@ package brush
 			}
 		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
-		{			
+		override public function drawOp(graphics:Graphics, op:Object):void 
+		{ 
+			var mat:Matrix = new Matrix(); 
+			mat.createGradientBox(op.dist,// w
+				op.lineThickness,	// h
+				op.angle,	// rotation
+				0, 	// tx
+				0); // ty
+			
+			if(op.lineStyleEnabled)
+				graphics.lineStyle();
+			
+			graphics.beginGradientFill(GradientType.LINEAR, // type
+				[op.sampleColor, op.lastColour], // colors
+				[op.alpha, op.alpha], // alphas
+				[0, 255], // ratios
+				mat);
+			
+			if(op.lineStyleEnabled)
+				graphics.lineStyle(1,darkenColor(op.sampleColor, op.alpha), op.alpha);
+			
+			graphics.moveTo(op.cx0, op.cy0);
+			graphics.curveTo(op.controlX1,op.controlY1, op.cx1, op.cy1);
+			
+			if(op.lineStyleEnabled)
+				graphics.lineStyle();
+			
+			graphics.lineTo(op.cx2, op.cy2);
+			
+			if(op.lineStyleEnabled)
+				graphics.lineStyle(1,darkenColor(op.sampleColor, op.alpha), op.alpha);
+			
+			graphics.curveTo(op.controlX2, op.controlY2, op.cx3, op.cy3);
+			
+			if(op.lineStyleEnabled)
+				graphics.lineStyle();
+			
+			graphics.lineTo(op.cx0, op.cy0);
+			
+			graphics.endFill();
+		}
+		
+		override public function draw2(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array
+		{	
+			var objects:Array = new Array();
+			
 			for each(var b:Object in bristles)
 			{
 				if(randomizeOffset)
@@ -131,110 +177,109 @@ package brush
 				var dy2:Number = mouseY - b.lastMouseY;
 				var dist2:Number = Math.sqrt(dx2*dx2 + dy2*dy2);
 			
-			var f:Number = 0.0;
-			var fence:Number = 75;
-			if (dist2 > fence)
-				f = 1;
-			else
-				f = 1- (dist2 / fence);
+				var f:Number = 0.0;
+				var fence:Number = 75;
+				if (dist2 > fence)
+					f = 1;
+				else
+					f = 1- (dist2 / fence);
 			
-			var firstPoint:Point = new Point(mouseX, mouseY);
-			var secondPoint:Point = new Point(mouseX + b.offsetX, mouseY + b.offsetY);
+				var firstPoint:Point = new Point(mouseX, mouseY);
+				var secondPoint:Point = new Point(mouseX + b.offsetX, mouseY + b.offsetY);
 			
-			var interp:Point = Point.interpolate(firstPoint, secondPoint,f); // 1 <--> 0
-			//var interp:Point = Point.interpolate(secondPoint, firstPoint,f); // 1 <--> 0
+				var interp:Point = Point.interpolate(firstPoint, secondPoint,f); // 1 <--> 0
+				//var interp:Point = Point.interpolate(secondPoint, firstPoint,f); // 1 <--> 0
 			
-			b.currentOffsetX = mouseX - interp.x;
-			b.currentOffsetY = mouseY - interp.y;
+				b.currentOffsetX = mouseX - interp.x;
+				b.currentOffsetY = mouseY - interp.y;
 			
-			var localX:int = mouseX + b.currentOffsetX;
-			var localY:int = mouseY + b.currentOffsetY;
+				var localX:int = mouseX + b.currentOffsetX;
+				var localY:int = mouseY + b.currentOffsetY;
 			
-			b.smoothedMouseX = b.smoothedMouseX + b.smoothingFactor*(localX - b.smoothedMouseX);
-			b.smoothedMouseY = b.smoothedMouseY + b.smoothingFactor*(localY - b.smoothedMouseY);
+				b.smoothedMouseX = b.smoothedMouseX + b.smoothingFactor*(localX - b.smoothedMouseX);
+				b.smoothedMouseY = b.smoothedMouseY + b.smoothingFactor*(localY - b.smoothedMouseY);
 			
-			b.mouseChangeVectorX = localX - b.lastMouseX;
-			b.mouseChangeVectorY = localY - b.lastMouseY;
+				b.mouseChangeVectorX = localX - b.lastMouseX;
+				b.mouseChangeVectorY = localY - b.lastMouseY;
 			
-			var diff:int = b.mouseChangeVectorX * b.lastMouseChangeVectorX + b.mouseChangeVectorY * b.lastMouseChangeVectorY;
-			if (diff < 0)
-			{
-				b.smoothedMouseX = b.lastSmoothedMouseX = b.lastMouseX;
-				b.smoothedMouseY = b.lastSmoothedMouseY = b.lastMouseY;
-				b.lastRotation += Math.PI;
-				b.lastThickness = b.tipTaperFactor * b.lastThickness;
-			}
-			
-			b.dx = b.smoothedMouseX - b.lastSmoothedMouseX;
-			b.dy = b.smoothedMouseY - b.lastSmoothedMouseY;
-			b.dist = Math.sqrt(b.dx*b.dx + b.dy*b.dy);
-			
-			if (b.dist != 0)
-				b.lineRotation = Math.PI/2 + Math.atan2(b.dy,b.dx);
-			else
-				b.lineRotation = 0;
-			
-			//b.targetLineThickness = b.minThickness + b.thicknessFactor * b.dist;
-			//b.lineThickness = b.lastThickness + b.thicknessSmoothingFactor * (b.targetLineThickness - b.lastThickness);
-			b.thicknessFactor = 0.25;
-			b.lineThickness = b.dist * b.thicknessFactor;
-			
-			b.sin0 = Math.sin(b.lastRotation);
-			b.cos0 = Math.cos(b.lastRotation);
-			b.sin1 = Math.sin(b.lineRotation);
-			b.cos1 = Math.cos(b.lineRotation);
-			
-			b.L0Sin0 = b.lastThickness*b.sin0;
-			b.L0Cos0 = b.lastThickness*b.cos0;
-			b.L1Sin1 = b.lineThickness*b.sin1;
-			b.L1Cos1 = b.lineThickness*b.cos1;
-			
-			b.controlVecX = 0.33*b.dist*b.sin0;
-			b.controlVecY = -0.33*b.dist*b.cos0;
-			b.controlX1 = b.lastSmoothedMouseX + b.L0Cos0 + b.controlVecX;
-			b.controlY1 = b.lastSmoothedMouseY + b.L0Sin0 + b.controlVecY;
-			b.controlX2 = b.lastSmoothedMouseX - b.L0Cos0 + b.controlVecX;
-			b.controlY2 = b.lastSmoothedMouseY - b.L0Sin0 + b.controlVecY;
-			
-			if(colorList != null && colorList.length > 0)
-			{
-				if(b.currentIndex >= colorList.length)
-					b.currentIndex = colorList.length - 1; // should adjust currentIndex on delete event instead
+				var diff:int = b.mouseChangeVectorX * b.lastMouseChangeVectorX + b.mouseChangeVectorY * b.lastMouseChangeVectorY;
+				if (diff < 0)
+				{
+					b.smoothedMouseX = b.lastSmoothedMouseX = b.lastMouseX;
+					b.smoothedMouseY = b.lastSmoothedMouseY = b.lastMouseY;
+					b.lastRotation += Math.PI;
+					b.lastThickness = b.tipTaperFactor * b.lastThickness;
+				}
 				
-				sampleColor = colorList.getItemAt(b.currentIndex).fill.color;
-				++b.currentIndex;
-				if(b.currentIndex > colorList.length - 1)
-					b.currentIndex = 0;
-			}
+				b.dx = b.smoothedMouseX - b.lastSmoothedMouseX;
+				b.dy = b.smoothedMouseY - b.lastSmoothedMouseY;
+				b.dist = Math.sqrt(b.dx*b.dx + b.dy*b.dy);
+				
+				if (b.dist != 0)
+					b.lineRotation = Math.PI/2 + Math.atan2(b.dy,b.dx);
+				else
+					b.lineRotation = 0;
+				
+				//b.targetLineThickness = b.minThickness + b.thicknessFactor * b.dist;
+				//b.lineThickness = b.lastThickness + b.thicknessSmoothingFactor * (b.targetLineThickness - b.lastThickness);
+				b.thicknessFactor = 0.25;
+				b.lineThickness = b.dist * b.thicknessFactor;
+				
+				b.sin0 = Math.sin(b.lastRotation);
+				b.cos0 = Math.cos(b.lastRotation);
+				b.sin1 = Math.sin(b.lineRotation);
+				b.cos1 = Math.cos(b.lineRotation);
+				
+				b.L0Sin0 = b.lastThickness*b.sin0;
+				b.L0Cos0 = b.lastThickness*b.cos0;
+				b.L1Sin1 = b.lineThickness*b.sin1;
+				b.L1Cos1 = b.lineThickness*b.cos1;
+				
+				b.controlVecX = 0.33*b.dist*b.sin0;
+				b.controlVecY = -0.33*b.dist*b.cos0;
+				b.controlX1 = b.lastSmoothedMouseX + b.L0Cos0 + b.controlVecX;
+				b.controlY1 = b.lastSmoothedMouseY + b.L0Sin0 + b.controlVecY;
+				b.controlX2 = b.lastSmoothedMouseX - b.L0Cos0 + b.controlVecX;
+				b.controlY2 = b.lastSmoothedMouseY - b.L0Sin0 + b.controlVecY;
 			
-			var cx0:int = b.lastSmoothedMouseX + b.L0Cos0;
-			var cy0:int = b.lastSmoothedMouseY + b.L0Sin0;
-			var cx1:int = b.smoothedMouseX + b.L1Cos1;
-			var cy1:int = b.smoothedMouseY + b.L1Sin1;
-			var cx2:int = b.smoothedMouseX - b.L1Cos1;
-			var cy2:int = b.smoothedMouseY - b.L1Sin1;
-			var cx3:int = b.lastSmoothedMouseX - b.L0Cos0;
-			var cy3:int = b.lastSmoothedMouseY - b.L0Sin0;
+				if(colorList != null && colorList.length > 0)
+				{
+					if(b.currentIndex >= colorList.length)
+						b.currentIndex = colorList.length - 1; // should adjust currentIndex on delete event instead
+					
+					sampleColor = colorList.getItemAt(b.currentIndex).fill.color;
+					++b.currentIndex;
+					if(b.currentIndex > colorList.length - 1)
+						b.currentIndex = 0;
+				}
 			
-			var angle:Number = b.lineRotation + toRad(90);
+				var cx0:int = b.lastSmoothedMouseX + b.L0Cos0;
+				var cy0:int = b.lastSmoothedMouseY + b.L0Sin0;
+				var cx1:int = b.smoothedMouseX + b.L1Cos1;
+				var cy1:int = b.smoothedMouseY + b.L1Sin1;
+				var cx2:int = b.smoothedMouseX - b.L1Cos1;
+				var cy2:int = b.smoothedMouseY - b.L1Sin1;
+				var cx3:int = b.lastSmoothedMouseX - b.L0Cos0;
+				var cy3:int = b.lastSmoothedMouseY - b.L0Sin0;
+				
+				var angle:Number = b.lineRotation + toRad(90);
+				
+				var mat:Matrix = new Matrix(); 
+				mat.createGradientBox(b.dist,// w
+					b.lineThickness,	// h
+					angle,	// rotation
+					0, 	// tx
+					0); // ty
 			
-			var mat:Matrix = new Matrix(); 
-			mat.createGradientBox(b.dist,// w
-				b.lineThickness,	// h
-				angle,	// rotation
-				0, 	// tx
-				0); // ty
-			
-			if(b.lineRotation > 0)
-				mat.translate(b.lastSmoothedMouseX, b.lastSmoothedMouseY);
-			else
-				mat.translate(b.smoothedMouseX, b.smoothedMouseY);
-			
+				if(b.lineRotation > 0)
+					mat.translate(b.lastSmoothedMouseX, b.lastSmoothedMouseY);
+				else
+					mat.translate(b.smoothedMouseX, b.smoothedMouseY);
+				
 				b.accumulatedDist += b.dist;
-				alpha = 1 - map(b.accumulatedDist, 0, 1000, 0, 1);
-				//accumulatedDist = 0;
-			
-				graphics.lineStyle();
+				
+				if(lineStyleEnabled)
+					graphics.lineStyle();
 				
 				graphics.beginGradientFill(GradientType.LINEAR, // type
 					[sampleColor, b.lastColour], // colors
@@ -242,21 +287,52 @@ package brush
 					[0, 255], // ratios
 					mat);
 			
-				graphics.lineStyle(1,darkenColor(sampleColor, alpha), alpha);
+				if(lineStyleEnabled)
+					graphics.lineStyle(1,darkenColor(sampleColor, alpha), alpha);
+				
 				graphics.moveTo(cx0, cy0);
 				graphics.curveTo(b.controlX1,b.controlY1, cx1, cy1);
 				
-				graphics.lineStyle();
+				if(lineStyleEnabled)
+					graphics.lineStyle();
+				
 				graphics.lineTo(cx2, cy2);
 				
-				graphics.lineStyle(1,darkenColor(sampleColor, alpha), alpha);
+				if(lineStyleEnabled)
+					graphics.lineStyle(1,darkenColor(sampleColor, alpha), alpha);
+				
 				graphics.curveTo(b.controlX2, b.controlY2, cx3, cy3);
 				
-				graphics.lineStyle();
+				if(lineStyleEnabled)
+					graphics.lineStyle();
+				
 				graphics.lineTo(cx0, cy0);
 				
 				graphics.endFill();
 			
+				objects.push({
+					t:16,
+					dist:b.dist,
+					lineThickness:b.lineThickness,
+					angle:angle,
+					lineStyleEnabled:lineStyleEnabled,
+					sampleColor:sampleColor,
+					lastColour:b.lastColour,
+					alpha:alpha,
+					cx0:cx0,
+					cy0:cy0,
+					cx1:cx1,
+					cy1:cy1,
+					cx2:cx2,
+					cy2:cy2,
+					cx3:cx3,
+					cy3:cy3,
+					controlX1:b.controlX1,
+					controlY1:b.controlY1,
+					controlX2:b.controlX2,
+					controlY2:b.controlY2
+				});
+				
 				b.lastColour = sampleColor;
 				b.lastSmoothedMouseX = b.smoothedMouseX;
 				b.lastSmoothedMouseY = b.smoothedMouseY;
@@ -264,10 +340,9 @@ package brush
 				b.lastMouseX = mouseX;
 				b.lastMouseY = mouseY;
 				b.lastThickness = b.lineThickness;
+			}
 			
-			} // TODO: return array of objects for bristles
-			
-			return {t:16};
+			return objects;
 		}
 	}
 }

@@ -5,6 +5,7 @@
 					   initialize="windowedApplication_initializeHandler(event)"
 					   creationComplete="windowedapplication_creationCompleteHandler(event)"
 					   keyDown="windowedapplication_keyDownHandler(event)"
+					   applicationComplete="windowedapplication1_applicationCompleteHandler(event)"
 					   usePreloader="false"
 					   backgroundAlpha="0"
 					   backgroundColor="#696969"
@@ -109,7 +110,9 @@
 			private var opsStream:FileStream = null;
 			private var opsFile:File = null;
 			
-			private var frameWindowRect:Rect = new Rect();
+			private var frameWindowRect:Rect = null;
+			private var aspectRatioInchesX:Number = 41; // 41' * 300 dpi = 12300 px
+			private var aspectRatioInchesY:Number = 27; // 27' * 300 dpi = 8100 px
 			
 			[Bindable] private var colorList:ArrayList = new ArrayList();
 			
@@ -123,6 +126,7 @@
 				ConsoleCommand.addCommand("load-drawing", loadDrawingOverwrite);
 				ConsoleCommand.addCommand("save-drawing", saveDrawing);
 				ConsoleCommand.addCommand("open", openImage);
+				ConsoleCommand.addCommand("load", openImage);
 				ConsoleCommand.addCommand("frame-rate", _frameRate);			
 				ConsoleCommand.addCommand("source-alpha", sourceAlpha);
 				ConsoleCommand.addCommand("bind-key", bindKey);
@@ -142,13 +146,25 @@
 				ConsoleCommand.addCommand("clear-all-brushes", clearAllBrushes, false);
 				ConsoleCommand.addCommand("clear-brush", clearBrush);
 				ConsoleCommand.addCommand("clear-palette", function():void { colorList = new ArrayList(); }, false);
-				ConsoleCommand.addCommand("randomize-offset", function (brushNum:Number, value:Boolean):void {
+				ConsoleCommand.addCommand("randomize-offset", randomizeOffset);
+				ConsoleCommand.addCommand("plus-minus-offset-range", plusMinusOffsetRange);
+				ConsoleCommand.addCommand("line-style-enabled", lineStyleEnabled);
+				ConsoleCommand.addCommand("set-aspect-ratio-inches", function(inchesX:Number, inchesY:Number):void {
+					aspectRatioInchesX = inchesX;
+					aspectRatioInchesY = inchesY;
+				});
+				ConsoleCommand.addCommand("rotate-frame-window", function():void {
 					
-					brushes[brushNum].randomizeOffset = value;
-				});
-				ConsoleCommand.addCommand("plus-minus-offset-range", function (brushNum:Number, value:Number):void {
-					brushes[brushNum].plusMinusOffsetRange = value;
-				});
+					var aspectX:Number = aspectRatioInchesX;
+					aspectRatioInchesX = aspectRatioInchesY;
+					aspectRatioInchesY = aspectX;
+					
+					if(frameWindowRect != null)
+						createFrameRect(frameWindowRect.height);
+					else
+						createFrameRect(421.4634146341463);
+					
+				}, false);
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -219,27 +235,37 @@
 						
 						case Keyboard.EQUAL:
 							
-							frameWindowRect.x -= 10;
-							frameWindowRect.y -= 10;
-							frameWindowRect.width += 20;
-							frameWindowRect.height += 20;
-							
-							frameWindow.graphics.clear();
-							frameWindow.graphics.lineStyle(1, 0x000000, 1.0, false, LineScaleMode.NONE);
-							frameWindow.graphics.drawRect(frameWindowRect.x, frameWindowRect.y, frameWindowRect.width, frameWindowRect.height);
+							adjustFrameWindowSize(event.shiftKey ? 1 : 10);
 					
 							break;
 						
 						case Keyboard.MINUS:
 							
-							frameWindowRect.x += 10;
-							frameWindowRect.y += 10;
-							frameWindowRect.width -= 20;
-							frameWindowRect.height -= 20;
+							adjustFrameWindowSize(event.shiftKey ? -1: -10);
 							
-							frameWindow.graphics.clear();
-							frameWindow.graphics.lineStyle(1, 0x000000, 1.0, false, LineScaleMode.NONE);
-							frameWindow.graphics.drawRect(frameWindowRect.x, frameWindowRect.y, frameWindowRect.width, frameWindowRect.height);
+							break;
+						
+						case Keyboard.LEFT:
+							
+							adjustFramePosition(event.shiftKey ? -1 : -10, 0);
+							
+							break;
+						
+						case Keyboard.RIGHT:
+							
+							adjustFramePosition(event.shiftKey ? 1 : 10, 0);
+							
+							break;
+						
+						case Keyboard.UP:
+							
+							adjustFramePosition(0, event.shiftKey ? -1 : -10);
+							
+							break;
+						
+						case Keyboard.DOWN:
+							
+							adjustFramePosition(0, event.shiftKey ? 1 : 10);
 							
 							break;
 					}
@@ -444,35 +470,76 @@
 				}
 			}
 			
-			private function defaultFrameRect():void
+			private function pixelHeightForAspectRatio(aspectInchesX:Number, aspectInchesY:Number, targetPixelWidth:Number):Number
 			{
-				var centerX:Number = renderGroup.width / 2;
-				var centerY:Number = renderGroup.height / 2;
-				var xOffset:Number = centerX - 320;
-				var yOffset:Number = centerY - 240;
+				return  pixelsForInches(aspectInchesY) / pixelsForInches(aspectInchesX) * targetPixelWidth;
+			}
+			
+			private function pixelsForInches(inches:Number, dpi:Number=300):Number
+			{
+				return inches * dpi;
+			}
+			
+			private function adjustFrameWindowSize(value:Number):void
+			{
+				var frameWidth:Number = frameWindowRect.width;
+				frameWidth += value;
 				
+				createFrameRect(frameWidth, true);
+			}
+			
+			private function adjustFramePosition(xOffset:Number, yOffset:Number):void
+			{
+				frameWindowRect.x += xOffset;
+				frameWindowRect.y += yOffset;
+				
+				frameWindow.graphics.clear();
+				frameWindow.graphics.lineStyle(1, 0x000000, 1.0, false, LineScaleMode.NONE);
+				frameWindow.graphics.drawRect(frameWindowRect.x, frameWindowRect.y, frameWindowRect.width, frameWindowRect.height);	
+			}
+			
+			private function createFrameRect(pixelWidth:Number, useCurrentOffset:Boolean=false):void
+			{
+				if(frameWindowRect == null)
+					frameWindowRect = new Rect();
+				
+				var frameWidth:Number = pixelWidth;
+				var frameHeight:Number = pixelHeightForAspectRatio(aspectRatioInchesX, aspectRatioInchesY, frameWidth);
+				
+				var centerX:Number;
+				var centerY:Number;
+				
+				if(useCurrentOffset)
+				{
+					centerX = frameWindowRect.x + (frameWindowRect.width  / 2);
+					centerY = frameWindowRect.y + (frameWindowRect.height / 2);
+				}
+				else
+				{
+					centerX = renderGroup.width  / 2;
+					centerY = renderGroup.height / 2;
+				}
+				
+				var xOffset:Number = centerX - (frameWidth/2);
+				var yOffset:Number = centerY - (frameHeight/2);
+					
 				frameWindowRect.x = xOffset;
 				frameWindowRect.y = yOffset;
-				frameWindowRect.width = 640;
-				frameWindowRect.height = 480;
+				
+				frameWindowRect.width = frameWidth;
+				frameWindowRect.height = frameHeight;
+				
+				frameWindow.graphics.clear();
+				frameWindow.graphics.lineStyle(1, 0x000000, 1.0, false, LineScaleMode.NONE);
+				frameWindow.graphics.drawRect(frameWindowRect.x, frameWindowRect.y, frameWindowRect.width, frameWindowRect.height);	
 			}
 			
 			private function _frameWindow(on:Number):void {
 				
 				if(on == 1)
 				{
-					if(sourceBitmap.source)
-					{
-						frameWindowRect.x = sourceBitmap.x;
-						frameWindowRect.y = sourceBitmap.y;
-						frameWindowRect.width = sourceBitmap.width;
-						frameWindowRect.height = sourceBitmap.height;
-					}
-					else
-						defaultFrameRect();
-					
-					frameWindow.graphics.lineStyle(1, 0x000000, 1.0, false, LineScaleMode.NONE);
-					frameWindow.graphics.drawRect(frameWindowRect.x, frameWindowRect.y, frameWindowRect.width, frameWindowRect.height);	
+					if(frameWindowRect == null)
+						createFrameRect(640);
 				}
 				else
 					frameWindow.graphics.clear();
@@ -487,16 +554,23 @@
 					return;
 				}
 				
-				if(frameWindowRect.width == 0)
-					defaultFrameRect();
+				if(frameWindowRect == null)
+					createFrameRect(640);
+
+				var targetWidth:Number = pixelsForInches(aspectRatioInchesX);
+				var targetHeight:Number = pixelsForInches(aspectRatioInchesY);
 				
-				// 41' x 27' = 12300 x 8100
-				var targetWidth:int = 12300;
-				var targetHeight:int = 8100;
-				var exportBitmap:Bitmap = new Bitmap(new BitmapData(targetWidth, targetHeight));
-				
+				var exportBitmap:Bitmap = new Bitmap(new BitmapData(targetWidth, targetHeight), PixelSnapping.ALWAYS, true);
+					
 				var scaleX:Number = targetWidth  / frameWindowRect.width;
 				var scaleY:Number = targetHeight / frameWindowRect.height;
+				
+				trace('targetWidth = ' + targetWidth);
+				trace('targetHeight = ' + targetHeight);
+				trace('frameWindowRect.width = ' + frameWindowRect.width);
+				trace('frameWindowRect.height = ' + frameWindowRect.height);
+				trace('scaleX = ' + scaleX);
+				trace('scaleY = ' + scaleY);
 				
 				if(opsStream != null)
 					opsStream.close();
@@ -527,30 +601,37 @@
 					
 					for(; i < offset; ++i)
 					{
-						var op:Object = tempOps[i];
+						var ops:Array = tempOps[i];
 						
-						if(op != null) 
+						if(ops != null) 
 						{
-							if(tempBrushes[op.t] == null)
+							for each(var op:Object in ops)
 							{
-								var BrushClass:Class = getDefinitionByName("brush.Brush" + op.t) as Class;
-								tempBrushes[op.t] = new BrushClass();
-								tempBrushes[op.t].sourceBitmap = sourceBitmap;
+								if(tempBrushes[op.t] == null)
+								{
+									var BrushClass:Class = getDefinitionByName("brush.Brush" + op.t) as Class;
+									tempBrushes[op.t] = new BrushClass();
+									tempBrushes[op.t].sourceBitmap = sourceBitmap;
+								}
+						
+								tempBrushes[op.t].drawOp(canvasContainer.graphics, op)
 							}
-					
-							tempBrushes[op.t].drawOp(canvasContainer.graphics, op)
 						}
 					}
 					
 					var m:Matrix = new Matrix();
 					
-					var centerX:Number = renderGroup.width / 2;
-					var centerY:Number = renderGroup.height / 2;
+//					var centerX:Number = renderGroup.width / 2;
+//					var centerY:Number = renderGroup.height / 2;
+					var centerX:Number = frameWindowRect.x + (frameWindowRect.width  / 2);
+					var centerY:Number = frameWindowRect.y + (frameWindowRect.height / 2);
+					
 					var xOffset:Number = centerX - (frameWindowRect.width  / 2);
 					var yOffset:Number = centerY - (frameWindowRect.height / 2);
-					m.translate(-xOffset, -yOffset);
 					
+					m.translate(-xOffset, -yOffset);
 					m.scale(scaleX, scaleY);
+					
 					exportBitmap.bitmapData.draw(canvasContainer, m);
 					canvasContainer.graphics.clear();
 					
@@ -571,7 +652,7 @@
 					trace("exporting file...");
 					var exportFile:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".png")
 					var fs:FileStream = new FileStream();
-					fs.openAsync(exportFile,FileMode.WRITE);
+					fs.open(exportFile,FileMode.WRITE);
 					fs.writeBytes(byteArray);
 					fs.close();
 					trace("file exported");
@@ -596,6 +677,21 @@
 				brushes[brushNum].sourceBitmap = sourceBitmap;
 				brushes[brushNum].renderGroupOffsetX = renderGroup.x;
 				brushes[brushNum].renderGroupOffsetY = renderGroup.y;
+			}
+			
+			private function randomizeOffset(brushNum:Number, value:Boolean):void
+			{
+				brushes[brushNum].randomizeOffset = value;
+			}
+			
+			private function plusMinusOffsetRange(brushNum:Number, value:Number):void 
+			{
+				brushes[brushNum].plusMinusOffsetRange = value;
+			}
+			
+			private function lineStyleEnabled(brushNum:Number, value:Boolean):void
+			{
+				brushes[brushNum].lineStyleEnabled = value;
 			}
 			
 			private function clearBrush(brushNum:Number):void
@@ -740,8 +836,7 @@
 						for each(var br:Brush in brushes)
 						{
 							opsStream.writeObject(
-								br.draw(canvasContainer.graphics,
-									sourceBitmap.source.bitmapData.getPixel(i, j),
+								br.draw2(canvasContainer.graphics,
 									sourceBitmap.x + i,
 									sourceBitmap.y + j,
 									null
@@ -803,18 +898,21 @@
 					
 					for(; i < offset; ++i)
 					{
-						var op:Object = tempOps[i];
+						var ops:Array = tempOps[i];
 						
-						if(op != null)
+						if(ops != null)
 						{
-							if(tempBrushes[op.t] == null)
+							for each(var op:Object in ops)
 							{
-								var BrushClass:Class = getDefinitionByName("brush.Brush" + op.t) as Class;
-								tempBrushes[op.t] = new BrushClass();
-								tempBrushes[op.t].sourceBitmap = sourceBitmap;
+								if(tempBrushes[op.t] == null)
+								{
+									var BrushClass:Class = getDefinitionByName("brush.Brush" + op.t) as Class;
+									tempBrushes[op.t] = new BrushClass();
+									tempBrushes[op.t].sourceBitmap = sourceBitmap;
+								}
+								
+								tempBrushes[op.t].drawOp(canvasContainer.graphics, op);
 							}
-							
-							tempBrushes[op.t].drawOp(canvasContainer.graphics, op);
 						}
 					}
 					
@@ -833,8 +931,7 @@
 				for each(var br:Brush in brushes)
 				{
 					opsStream.writeObject(
-						br.draw(canvasContainer.graphics,
-								sampleColor,
+						br.draw2(canvasContainer.graphics,
 								event.stageX - renderGroup.x,
 								event.stageY - renderGroup.y,
 								colorList)
@@ -970,6 +1067,11 @@
 					else if(colorList.length > 0)
 						list.selectedIndex = colorList.length - 1;
 				}
+			}
+			
+			protected function windowedapplication1_applicationCompleteHandler(event:FlexEvent):void
+			{
+				stage.quality = StageQuality.BEST;
 			}
 			
 		]]>
