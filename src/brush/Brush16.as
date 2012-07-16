@@ -17,6 +17,7 @@ package brush
 		public var renderGroupOffsetY:Number = 0;
 		public var lineStyleEnabled:Boolean = false;
 		public var sampleColor:Number = 0;
+		public var offsetBristles:Boolean = true;
 		
 		public function Brush16()
 		{
@@ -24,11 +25,14 @@ package brush
 			
 			brushNum = 16;
 			
-			addBristles(15);
+			totalBristles(1);
 		}
 		
-		override public function addBristles(numBristles:Number):void
+		override public function totalBristles(numBristles:Number):void
 		{
+			offsetBristles = numBristles > 1;
+			bristles = new Array();
+			
 			for(var i:int = 0; i < numBristles; ++i)
 			{
 				bristles.push({
@@ -86,8 +90,12 @@ package brush
 		{
 			for each(var b:Object in bristles)
 			{
-				b.offsetX = (Math.random() > 0.5 ? Math.random() * 10 : -Math.random() * 10),
-				b.offsetY = (Math.random() > 0.5 ? Math.random() * 10 : -Math.random() * 10)
+				if(offsetBristles)
+				{
+					b.offsetX = (Math.random() > 0.5 ? Math.random() * 10 : -Math.random() * 10),
+					b.offsetY = (Math.random() > 0.5 ? Math.random() * 10 : -Math.random() * 10)
+				}
+				
 				b.currentOffsetX = b.offsetX;
 				b.currentOffsetY = b.offsetY;
 				
@@ -171,7 +179,12 @@ package brush
 				else if(sourceLocal.y > sourceBitmap.source.bitmapData.height)
 					sourceLocal.y = sourceBitmap.source.bitmapData.height - 1;
 				
-				sampleColor = sourceBitmap.source.bitmapData.getPixel(sourceLocal.x, sourceLocal.y);
+				sampleColor = sourceBitmap.source.bitmapData.getPixel32(sourceLocal.x, sourceLocal.y);
+				
+				//alpha =  (sampleColor >> 24 & 0xFF) / 255.0;
+//				var red:uint = sampleColor >> 16 & 0xFF;
+//				var green:uint = sampleColor >> 8 & 0xFF;
+//				var blue:uint = sampleColor & 0xFF;
 				
 				var dx2:Number = mouseX - b.lastMouseX;
 				var dy2:Number = mouseY - b.lastMouseY;

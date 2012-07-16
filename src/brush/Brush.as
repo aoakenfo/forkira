@@ -29,7 +29,7 @@ package brush
 			centerOffset = value * 0.5;
 		}
 		
-		public function addBristles(numBristles:Number):void { }
+		public function totalBristles(numBristles:Number):void { }
 		public function mouseDown(mouseX:Number, mouseY:Number):void { }
 		public function mouseUp(mouseX:Number, mouseY:Number):void { }
 		public function drawOp(graphics:Graphics, op:Object):void { }

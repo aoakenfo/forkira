@@ -165,6 +165,9 @@
 						createFrameRect(421.4634146341463);
 					
 				}, false);
+				ConsoleCommand.addCommand("total-bristles", function (brushNum:Number, numBristles:Number):void {
+					brushes[brushNum].totalBristles(numBristles);
+				});
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
