@@ -11,6 +11,8 @@ package brush
 			super();
 			
 			brushNum = 6;
+			plusMinusOffsetRange = 10;
+			lineStyleEnabled = true;
 		}
 		
 		// TODO: move into base class
@@ -44,14 +46,35 @@ package brush
 		{
 			lastMouseX = mouseX;
 			lastMouseY = mouseY;
+			lastRotation = 0;
 		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
-		{	
+		override public function drawOp(graphics:Graphics, op:Object):void
+		{
+			if(op.lineStyleEnabled)
+				graphics.lineStyle(op.lineWidth, op.sampleColor, op.alpha);
+			
+			graphics.beginFill(op.sampleColor, op.alpha);
+			
+			graphics.moveTo(op.lastMouseX + op.L0Cos0, op.lastMouseY + op.L0Sin0);
+			graphics.curveTo(op.controlX1, op.controlY1, op.mouseX + op.L1Cos1, op.mouseY + op.L1Sin1);
+			graphics.lineTo(op.mouseX - op.L1Cos1, op.mouseY - op.L1Sin1);
+			graphics.curveTo(op.controlX2, op.controlY2, op.lastMouseX - op.L0Cos0, op.lastMouseY - op.L0Sin0);
+			graphics.lineTo(op.lastMouseX + op.L0Cos0, op.lastMouseY + op.L0Sin0);
+			
+			graphics.endFill();
+		}
+		
+		override public function draw2(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array
+		{
+			var objects:Array = new Array();
+			
+			updateSampleColor(mouseX, mouseY);	
+			
 			mouseChangeVectorX = mouseX - lastMouseX;
 			mouseChangeVectorY = mouseY - lastMouseY;
 			
-			lineThickness = Math.random() * 20;
+			lineThickness = Math.random() * plusMinusOffsetRange;
 			
 			dx = mouseChangeVectorX;
 			dy = mouseChangeVectorY;
@@ -67,23 +90,15 @@ package brush
 			sin1 = Math.sin(lineRotation);
 			cos1 = Math.cos(lineRotation);
 			
-			//trace(lineRotation);
-			
 			L0Sin0 = lineThickness*sin0;
 			L0Cos0 = lineThickness*cos0;
 			L1Sin1 = lineThickness*sin1;
 			L1Cos1 = lineThickness*cos1;
 			
-			graphics.lineStyle(1, sampleColor, alpha);
+			if(lineStyleEnabled)
+				graphics.lineStyle(lineWidth, sampleColor, alpha);
+			
 			graphics.beginFill(sampleColor, alpha);
-				
-			/*
-			mc.graphics.moveTo(lastMouseX + L0Cos0, lastMouseY + L0Sin0);
-			mc.graphics.lineTo(bitmapHolder.mouseX + L1Cos1, bitmapHolder.mouseY + L1Sin1);
-			mc.graphics.lineTo(bitmapHolder.mouseX - L1Cos1, bitmapHolder.mouseY - L1Sin1);
-			mc.graphics.lineTo(lastMouseX - L0Cos0, lastMouseY - L0Sin0);
-			mc.graphics.lineTo(lastMouseX + L0Cos0, lastMouseY + L0Sin0);
-			*/
 			
 			controlVecX = 0.33*dist*sin0;
 			controlVecY = -0.33*dist*cos0;
@@ -100,21 +115,32 @@ package brush
 			
 			graphics.endFill();
 			
-			/*
-			// info graphics
-			mc.graphics.lineStyle(1, 0xffffff, 0.5);
-			mc.graphics.moveTo(lastMouseX, lastMouseY);
-			mc.graphics.lineTo(evt.localX, evt.localY);//bitmapHolder.mouseX, bitmapHolder.mouseY);
-			*/
+			objects.push({
+				t:6,
+				lineStyleEnabled:lineStyleEnabled,
+				lineWidth:lineWidth,
+				sampleColor:sampleColor,
+				alpha:alpha,
+				mouseX:mouseX,
+				mouseY:mouseY,
+				lastMouseX:lastMouseX,
+				lastMouseY:lastMouseY,
+				L0Cos0:L0Cos0,
+				L0Sin0:L0Sin0,
+				L1Cos1:L1Cos1,
+				L1Sin1:L1Sin1,
+				controlX1:controlX1,
+				controlY1:controlY1,
+				controlX2:controlX2,
+				controlY2:controlY2
+			});
 			
 			lastRotation = lineRotation;
-		
-			lastMouseX = mouseX;//bitmapHolder.mouseX;
-			lastMouseY = mouseY;//bitmapHolder.mouseY;
-			
+			lastMouseX = mouseX;
+			lastMouseY = mouseY;
 			lastColour = sampleColor;
 			
-			return {t:6};
+			return objects;
 		}
 	}
 }

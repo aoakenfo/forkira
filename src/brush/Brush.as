@@ -3,6 +3,7 @@ package brush
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
+	import flash.geom.Point;
 	
 	import mx.collections.ArrayList;
 	
@@ -20,6 +21,36 @@ package brush
 		public var lastMouseY:Number = -1;
 		protected var _radius:Number = -1;
 		public var centerOffset:Number = -1;
+		
+		public var bristles:Array = new Array();
+		public var sourceLocal:Point = new Point();
+		public var sampleColor:Number = 0;
+		public var randomizeOffset:Boolean = false;
+		public var plusMinusOffsetRange:Number = 45;
+		public var renderGroupOffsetX:Number = 0;
+		public var renderGroupOffsetY:Number = 0;
+		public var lineStyleEnabled:Boolean = false;
+		public var offsetBristles:Boolean = true;
+		
+		public var offsetX:Number = 0;
+		public var offsetY:Number = 0;
+		
+		public function updateSampleColor(mouseX:Number, mouseY:Number):void
+		{
+			sourceLocal = sourceBitmap.globalToLocal(new Point(mouseX + renderGroupOffsetX, mouseY + renderGroupOffsetY));
+			
+			// clamp
+			if(sourceLocal.x < 0)
+				sourceLocal.x = 0;
+			else if(sourceLocal.x > sourceBitmap.source.bitmapData.width)
+				sourceLocal.x = sourceBitmap.source.bitmapData.width - 1;
+			if(sourceLocal.y < 0)
+				sourceLocal.y = 0;
+			else if(sourceLocal.y > sourceBitmap.source.bitmapData.height)
+				sourceLocal.y = sourceBitmap.source.bitmapData.height - 1;
+			
+			sampleColor = sourceBitmap.source.bitmapData.getPixel32(sourceLocal.x, sourceLocal.y);
+		}
 		
 		public function get radius():Number { return _radius; }
 		

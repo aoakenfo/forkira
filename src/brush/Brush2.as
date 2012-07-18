@@ -29,8 +29,9 @@ package brush
 			lastMouseY = op.my;	
 		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
+		override public function draw2(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array
 		{
+			updateSampleColor(mouseX, mouseY);
 			graphics.lineStyle(lineWidth, sampleColor, alpha);
 			graphics.moveTo(lastMouseX, lastMouseY);
 			graphics.lineTo(mouseX, mouseY);
@@ -49,7 +50,7 @@ package brush
 			lastMouseX = mouseX;
 			lastMouseY = mouseY;
 			
-			return obj;
+			return null;
 		}
 	}
 }

@@ -56,8 +56,6 @@ package brush
 		private var thicknessSmoothingFactor:Number = 0.6;
 		
 		private var tipTaperFactor:Number = 0.8;
-		private var offsetX:Number = 0;
-		private var offsetY:Number = 0;
 		private var currentOffsetX:Number = 0;
 		private var currentOffsetY:Number = 0;
 		

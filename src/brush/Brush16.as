@@ -9,16 +9,6 @@ package brush
 
 	public class Brush16 extends Brush
 	{
-		private var bristles:Array = new Array();
-		private var sourceLocal:Point = new Point();
-		public var randomizeOffset:Boolean = false;
-		public var plusMinusOffsetRange:Number = 45;
-		public var renderGroupOffsetX:Number = 0;
-		public var renderGroupOffsetY:Number = 0;
-		public var lineStyleEnabled:Boolean = false;
-		public var sampleColor:Number = 0;
-		public var offsetBristles:Boolean = true;
-		
 		public function Brush16()
 		{
 			super();
@@ -167,21 +157,9 @@ package brush
 				mouseX += b.offsetX;
 				mouseY += b.offsetY;
 				
-				sourceLocal = sourceBitmap.globalToLocal(new Point(mouseX + renderGroupOffsetX, mouseY + renderGroupOffsetY));
+				updateSampleColor(mouseX, mouseY);
 				
-				// clamp
-				if(sourceLocal.x < 0)
-					sourceLocal.x = 0;
-				else if(sourceLocal.x > sourceBitmap.source.bitmapData.width)
-					sourceLocal.x = sourceBitmap.source.bitmapData.width - 1;
-				if(sourceLocal.y < 0)
-					sourceLocal.y = 0;
-				else if(sourceLocal.y > sourceBitmap.source.bitmapData.height)
-					sourceLocal.y = sourceBitmap.source.bitmapData.height - 1;
-				
-				sampleColor = sourceBitmap.source.bitmapData.getPixel32(sourceLocal.x, sourceLocal.y);
-				
-				//alpha =  (sampleColor >> 24 & 0xFF) / 255.0;
+//				alpha =  (sampleColor >> 24 & 0xFF) / 255.0;
 //				var red:uint = sampleColor >> 16 & 0xFF;
 //				var green:uint = sampleColor >> 8 & 0xFF;
 //				var blue:uint = sampleColor & 0xFF;
