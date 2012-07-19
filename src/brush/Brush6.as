@@ -11,36 +11,9 @@ package brush
 			super();
 			
 			brushNum = 6;
-			plusMinusOffsetRange = 10;
 			lineStyleEnabled = true;
+			lineThicknessMultiplier = 10;
 		}
-		
-		// TODO: move into base class
-		private var mouseChangeVectorX:Number;
-		private var mouseChangeVectorY:Number;
-		private var dx:Number;
-		private var dy:Number;
-		private var dist:Number;
-		private var startX:Number;
-		private var startY:Number;
-		private var lineThickness:Number = 15;//5;//50;//5;//20;
-		private var lineRotation:Number;
-		private var lastRotation:Number;
-		private var L0Sin0:Number;
-		private var L0Cos0:Number;
-		private var L1Sin1:Number;
-		private var L1Cos1:Number;
-		private var sin0:Number;
-		private var cos0:Number;
-		private var sin1:Number;
-		private var cos1:Number;
-		private var controlVecX:Number;
-		private var controlVecY:Number;
-		private var controlX1:Number;
-		private var controlY1:Number;
-		private var controlX2:Number;
-		private var controlY2:Number;
-		private var lastColour:uint;
 		
 		override public function mouseDown(mouseX:Number, mouseY:Number):void
 		{
@@ -74,7 +47,7 @@ package brush
 			mouseChangeVectorX = mouseX - lastMouseX;
 			mouseChangeVectorY = mouseY - lastMouseY;
 			
-			lineThickness = Math.random() * plusMinusOffsetRange;
+			lineThickness =  (Math.random() * lineThicknessMultiplier);
 			
 			dx = mouseChangeVectorX;
 			dy = mouseChangeVectorY;

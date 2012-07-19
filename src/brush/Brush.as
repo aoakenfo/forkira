@@ -32,8 +32,55 @@ package brush
 		public var lineStyleEnabled:Boolean = false;
 		public var offsetBristles:Boolean = true;
 		
-		public var offsetX:Number = 0;
-		public var offsetY:Number = 0;
+		protected var offsetX:Number = 0;
+		protected var offsetY:Number = 0;
+		
+		protected var mouseChangeVectorX:Number;
+		protected var mouseChangeVectorY:Number;
+		protected var dx:Number;
+		protected var dy:Number;
+		protected var dist:Number;
+		protected var startX:Number;
+		protected var startY:Number;
+		public var lineThickness:Number = 15;
+		public var lineThicknessMultiplier:Number = 1;
+		protected var lineRotation:Number;
+		protected var lastRotation:Number;
+		protected var L0Sin0:Number;
+		protected var L0Cos0:Number;
+		protected var L1Sin1:Number;
+		protected var L1Cos1:Number;
+		protected var sin0:Number;
+		protected var cos0:Number;
+		protected var sin1:Number;
+		protected var cos1:Number;
+		protected var controlVecX:Number;
+		protected var controlVecY:Number;
+		protected var controlX1:Number;
+		protected var controlY1:Number;
+		protected var controlX2:Number;
+		protected var controlY2:Number;
+		protected var lastColour:uint;
+		
+		protected var smoothedMouseX:Number = 0;
+		protected var smoothedMouseY:Number = 0;
+		protected var lastSmoothedMouseX:Number = 0;
+		protected var lastSmoothedMouseY:Number = 0;
+		protected var smoothingFactor:Number = 0.3;  //Should be set to something between 0 and 1.  Higher numbers mean less smoothing.
+		
+		protected var lastMouseChangeVectorX:Number;
+		protected var lastMouseChangeVectorY:Number;
+		
+		protected var targetLineThickness:Number;
+		protected var minThickness:Number = 0.2;
+		protected var thicknessFactor:Number = 0.25;
+		protected var lastThickness:Number = 0;
+		protected var thicknessSmoothingFactor:Number = 0.3;
+		
+		protected var tipTaperFactor:Number = 0.8;
+		protected var currentOffsetX:Number = 0;
+		protected var currentOffsetY:Number = 0;
+		protected var currentColorListIndex:int = 0;
 		
 		public function updateSampleColor(mouseX:Number, mouseY:Number):void
 		{

@@ -14,51 +14,6 @@ package brush
 			brushNum = 25;
 		}
 		
-		// TODO: move into base class
-		private var lastMouseChangeVectorX:Number;
-		private var lastMouseChangeVectorY:Number;
-		private var mouseChangeVectorX:Number;
-		private var mouseChangeVectorY:Number;
-		private var dx:Number;
-		private var dy:Number;
-		private var dist:Number;
-		private var startX:Number;
-		private var startY:Number;
-		private var lineThickness:Number = 30;//5;//50;//5;//20;
-		private var lineRotation:Number;
-		private var lastRotation:Number;
-		private var L0Sin0:Number;
-		private var L0Cos0:Number;
-		private var L1Sin1:Number;
-		private var L1Cos1:Number;
-		private var sin0:Number;
-		private var cos0:Number;
-		private var sin1:Number;
-		private var cos1:Number;
-		private var controlVecX:Number;
-		private var controlVecY:Number;
-		private var controlX1:Number;
-		private var controlY1:Number;
-		private var controlX2:Number;
-		private var controlY2:Number;
-		private var lastColour:uint;
-		
-		private var smoothedMouseX:Number = 0;
-		private var smoothedMouseY:Number = 0;
-		private var lastSmoothedMouseX:Number = 0;
-		private var lastSmoothedMouseY:Number = 0;
-		private var smoothingFactor:Number = 0.3;  //Should be set to something between 0 and 1.  Higher numbers mean less smoothing.
-		
-		private var targetLineThickness:Number;
-		private var minThickness:Number = 0.4;
-		private var thicknessFactor:Number = 0.25;
-		private var lastThickness:Number = 0;
-		private var thicknessSmoothingFactor:Number = 0.6;
-		
-		private var tipTaperFactor:Number = 0.8;
-		private var currentOffsetX:Number = 0;
-		private var currentOffsetY:Number = 0;
-		
 		override public function mouseDown(mouseX:Number, mouseY:Number):void
 		{
 			lastMouseX = mouseX;

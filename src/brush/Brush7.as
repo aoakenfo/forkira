@@ -11,43 +11,54 @@ package brush
 			super();
 			
 			brushNum = 7;
+			lineStyleEnabled = true;
 		}
 		
-		// TODO: move into base class
-		private var mouseChangeVectorX:Number;
-		private var mouseChangeVectorY:Number;
-		private var dx:Number;
-		private var dy:Number;
-		private var dist:Number;
-		private var startX:Number;
-		private var startY:Number;
-		private var lineThickness:Number = 15;//5;//50;//5;//20;
-		private var lineRotation:Number;
-		private var lastRotation:Number;
-		private var L0Sin0:Number;
-		private var L0Cos0:Number;
-		private var L1Sin1:Number;
-		private var L1Cos1:Number;
-		private var sin0:Number;
-		private var cos0:Number;
-		private var sin1:Number;
-		private var cos1:Number;
-		private var controlVecX:Number;
-		private var controlVecY:Number;
-		private var controlX1:Number;
-		private var controlY1:Number;
-		private var controlX2:Number;
-		private var controlY2:Number;
-		private var lastColour:uint;
+		override public function mouseDown(mouseX:Number, mouseY:Number):void
+		{
+			lastMouseX = mouseX;
+			lastMouseY = mouseY;
+			lastRotation = 0;
+			lineRotation = 0;
+			smoothedMouseX = mouseX;
+			smoothedMouseY = mouseY;
+			lastSmoothedMouseX = mouseX;
+			lastSmoothedMouseY = mouseY;
+		}
 		
-		private var smoothedMouseX:Number = 0;
-		private var smoothedMouseY:Number = 0;
-		private var lastSmoothedMouseX:Number = 0;
-		private var lastSmoothedMouseY:Number = 0;
-		private var smoothingFactor:Number = 0.3;  //Should be set to something between 0 and 1.  Higher numbers mean less smoothing.
+		override public function drawOp(graphics:Graphics, op:Object):void
+		{
+			if(op.lineStyleEnabled)
+				graphics.lineStyle(op.lineWidth, op.sampleColor, op.alpha);
+			
+			graphics.beginFill(op.sampleColor, op.alpha);
+			
+			graphics.moveTo(op.lastSmoothedMouseX + op.L0Cos0, op.lastSmoothedMouseY + op.L0Sin0);
+			graphics.curveTo(op.controlX1, op.controlY1, op.smoothedMouseX + op.L1Cos1, op.smoothedMouseY + op.L1Sin1);
+			graphics.lineTo(op.smoothedMouseX - op.L1Cos1, op.smoothedMouseY - op.L1Sin1);
+			graphics.curveTo(op.controlX2, op.controlY2, op.lastSmoothedMouseX - op.L0Cos0, op.lastSmoothedMouseY - op.L0Sin0);
+			graphics.lineTo(op.lastSmoothedMouseX + op.L0Cos0, op.lastSmoothedMouseY + op.L0Sin0);
+			
+			graphics.endFill();
+		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
-		{		
+		override public function draw2(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array
+		{	
+			var objects:Array = new Array();
+			
+			if(colorList != null && colorList.length > 0)
+			{
+				if(currentColorListIndex >= colorList.length)
+					currentColorListIndex = colorList.length - 1; // should adjust currentIndex on delete event instead
+				
+				sampleColor = colorList.getItemAt(currentColorListIndex).fill.color;
+				++currentColorListIndex;
+				if(currentColorListIndex > colorList.length - 1)
+					currentColorListIndex = 0;
+			}
+			else
+				updateSampleColor(mouseX, mouseY);	
+			
 			smoothedMouseX = smoothedMouseX + smoothingFactor*(mouseX - smoothedMouseX);
 			smoothedMouseY = smoothedMouseY + smoothingFactor*(mouseY - smoothedMouseY);
 			
@@ -77,22 +88,44 @@ package brush
 			controlX2 = lastSmoothedMouseX - L0Cos0 + controlVecX;
 			controlY2 = lastSmoothedMouseY - L0Sin0 + controlVecY;
 			
-			graphics.lineStyle(lineWidth, sampleColor, alpha);
+			if(lineStyleEnabled)
+				graphics.lineStyle(lineWidth, sampleColor, alpha);
+			
 			graphics.beginFill(sampleColor, alpha);
 			
 			graphics.moveTo(lastSmoothedMouseX + L0Cos0, lastSmoothedMouseY + L0Sin0);
-			graphics.curveTo(controlX1,controlY1,smoothedMouseX + L1Cos1, smoothedMouseY + L1Sin1);
+			graphics.curveTo(controlX1, controlY1, smoothedMouseX + L1Cos1, smoothedMouseY + L1Sin1);
 			graphics.lineTo(smoothedMouseX - L1Cos1, smoothedMouseY - L1Sin1);
 			graphics.curveTo(controlX2, controlY2, lastSmoothedMouseX - L0Cos0, lastSmoothedMouseY - L0Sin0);
 			graphics.lineTo(lastSmoothedMouseX + L0Cos0, lastSmoothedMouseY + L0Sin0);
 			
 			graphics.endFill();
 			
+			objects.push({
+				t:7,
+				lineWidth:lineWidth,
+				sampleColor:sampleColor,
+				alpha:alpha,
+				lineStyleEnabled:lineStyleEnabled,
+				L0Cos0:L0Cos0,
+				L0Sin0:L0Sin0,
+				L1Cos1:L1Cos1,
+				L1Sin1:L1Sin1,
+				controlX1:controlX1,
+				controlY1:controlY1,
+				controlX2:controlX2,
+				controlY2:controlY2,
+				smoothedMouseX:smoothedMouseX,
+				smoothedMouseY:smoothedMouseY,
+				lastSmoothedMouseX:lastSmoothedMouseX,
+				lastSmoothedMouseY:lastSmoothedMouseY
+			});
+			
 			lastSmoothedMouseX = smoothedMouseX;
 			lastSmoothedMouseY = smoothedMouseY;
 			lastRotation = lineRotation;
 			
-			return {t:7};
+			return objects;
 		}
 	}
 }

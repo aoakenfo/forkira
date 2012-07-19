@@ -168,6 +168,12 @@
 				ConsoleCommand.addCommand("total-bristles", function (brushNum:Number, numBristles:Number):void {
 					brushes[brushNum].totalBristles(numBristles);
 				});
+				ConsoleCommand.addCommand("line-thickness", function (brushNum:Number, value:Number):void {
+					brushes[brushNum].lineThickness = value;
+				});
+				ConsoleCommand.addCommand("line-thickness-multiplier", function (brushNum:Number, value:Number):void {
+					brushes[brushNum].lineThicknessMultiplier = value;
+				});
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -682,9 +688,9 @@
 				brushes[brushNum].renderGroupOffsetY = renderGroup.y;
 			}
 			
-			private function randomizeOffset(brushNum:Number, value:Boolean):void
+			private function randomizeOffset(brushNum:Number, value:Number):void
 			{
-				brushes[brushNum].randomizeOffset = value;
+				brushes[brushNum].randomizeOffset = value == 1;
 			}
 			
 			private function plusMinusOffsetRange(brushNum:Number, value:Number):void 
@@ -692,9 +698,9 @@
 				brushes[brushNum].plusMinusOffsetRange = value;
 			}
 			
-			private function lineStyleEnabled(brushNum:Number, value:Boolean):void
+			private function lineStyleEnabled(brushNum:Number, value:Number):void
 			{
-				brushes[brushNum].lineStyleEnabled = value;
+				brushes[brushNum].lineStyleEnabled = value == 1;
 			}
 			
 			private function clearBrush(brushNum:Number):void

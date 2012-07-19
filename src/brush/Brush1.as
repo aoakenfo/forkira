@@ -31,14 +31,25 @@ package brush
 		{
 			var objects:Array = new Array();
 			
+			if(colorList != null && colorList.length > 0)
+			{
+				if(currentColorListIndex >= colorList.length)
+					currentColorListIndex = colorList.length - 1; // should adjust currentIndex on delete event instead
+				
+				sampleColor = colorList.getItemAt(currentColorListIndex).fill.color;
+				++currentColorListIndex;
+				if(currentColorListIndex > colorList.length - 1)
+					currentColorListIndex = 0;
+			}
+			else
+				updateSampleColor(mouseX, mouseY);
+			
 			offsetX = Math.random() * 10 + (Math.random() > 0.5 ? 1 : -1);
 			offsetY = Math.random() * 10 + (Math.random() > 0.5 ? 1 : -1);
 			
 			mouseX += offsetX;
 			mouseY += offsetY;
 			
-			updateSampleColor(mouseX, mouseY);
-				
 			graphics.lineStyle(lineWidth, sampleColor, alpha);
 		
 			graphics.moveTo(mouseX, mouseY);
