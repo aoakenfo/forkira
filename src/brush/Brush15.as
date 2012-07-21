@@ -14,10 +14,83 @@ package brush
 			super();
 			
 			brushNum = 15;
+			lineThicknessMultiplier = 2.75;
 		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
+		override public function mouseDown(mouseX:Number, mouseY:Number):void
 		{
+			lastMouseX = mouseX;
+			lastMouseY = mouseY;
+			lastRotation = 0;
+			lineRotation = 0;
+			smoothedMouseX = mouseX;
+			smoothedMouseY = mouseY;
+			lastSmoothedMouseX = mouseX;
+			lastSmoothedMouseY = mouseY;
+		}
+
+		override public function drawOp(graphics:Graphics, op:Object):void
+		{
+			var mat:Matrix = new Matrix(); 
+			mat.createGradientBox(op.dist,// w
+				op.lineThickness,	// h
+				op.angle,	// rotation
+				0, 	// tx
+				0); // ty
+			
+			if(op.lineRotation > 0)
+				mat.translate(op.lastSmoothedMouseX, op.lastSmoothedMouseY);
+			else
+				mat.translate(op.smoothedMouseX, op.smoothedMouseY);
+			
+			graphics.beginGradientFill(GradientType.LINEAR, // type
+				[op.sampleColor, op.lastColour], // colors
+				[op.alpha, op.alpha], // alphas
+				[0, 255], // ratios
+				mat);
+			
+			graphics.moveTo(op.cx0, op.cy0);
+			
+			if(op.lineStyleEnabled)
+				graphics.lineStyle(op.lineWidth, op.sampleColor, op.alpha);
+			
+			graphics.curveTo(op.controlX1, op.controlY1, op.cx1, op.cy1);
+			
+			if(op.lineStyleEnabled)
+				graphics.lineStyle();
+			
+			graphics.lineTo(op.cx2, op.cy2);
+			
+			if(op.lineStyleEnabled)
+				graphics.lineStyle(op.lineWidth, op.sampleColor, op.alpha);
+			
+			graphics.curveTo(op.controlX2, op.controlY2, op.cx3, op.cy3);
+			
+			if(op.lineStyleEnabled)
+				graphics.lineStyle();
+			
+			graphics.lineTo(op.cx0, op.cy0);
+			
+			graphics.endFill();
+		}
+		
+		override public function draw2(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array
+		{
+			var objects:Array = new Array();
+			
+			if(colorList != null && colorList.length > 0)
+			{
+				if(currentColorListIndex >= colorList.length)
+					currentColorListIndex = colorList.length - 1; // should adjust currentIndex on delete event instead
+				
+				sampleColor = colorList.getItemAt(currentColorListIndex).fill.color;
+				++currentColorListIndex;
+				if(currentColorListIndex > colorList.length - 1)
+					currentColorListIndex = 0;
+			}
+			else
+				updateSampleColor(mouseX, mouseY);	
+			
 			var dx2:Number = mouseX - lastMouseX;
 			var dy2:Number = mouseY - lastMouseY;
 			var dist2:Number = Math.sqrt(dx2*dx2 + dy2*dy2);
@@ -65,12 +138,11 @@ package brush
 			else
 				lineRotation = 0;
 			
-			
 			//targetLineThickness = minThickness + thicknessFactor * dist;
 			//lineThickness = lastThickness + thicknessSmoothingFactor * (targetLineThickness - lastThickness);
-			thicknessFactor = 2.75;
-			lineThickness = dist * thicknessFactor;
-			trace('dist = ' + dist);
+			//thicknessFactor = 2.75;
+			lineThickness = dist * lineThicknessMultiplier;
+			
 			sin0 = Math.sin(lastRotation);
 			cos0 = Math.cos(lastRotation);
 			sin1 = Math.sin(lineRotation);
@@ -87,17 +159,6 @@ package brush
 			controlY1 = lastSmoothedMouseY + L0Sin0 + controlVecY;
 			controlX2 = lastSmoothedMouseX - L0Cos0 + controlVecX;
 			controlY2 = lastSmoothedMouseY - L0Sin0 + controlVecY;
-			
-//			if(colorList.length > 0)
-//			{
-//				if(currentIndex >= colorList.length)
-//					currentIndex = colorList.length - 1; // should adjust currentIndex on delete event instead
-//				
-//				color = colorList.getItemAt(currentIndex).fill.color;
-//				++currentIndex;
-//				if(currentIndex > colorList.length - 1)
-//					currentIndex = 0;
-//			}
 			
 			var cx0:int = lastSmoothedMouseX + L0Cos0;
 			var cy0:int = lastSmoothedMouseY + L0Sin0;
@@ -124,38 +185,72 @@ package brush
 			
 			graphics.beginGradientFill(GradientType.LINEAR, // type
 				[sampleColor, lastColour], // colors
-				[0.25,0.25], // alphas
+				[alpha, alpha], // alphas
 				[0, 255], // ratios
 				mat);
 			
-			lastColour = sampleColor;
-			
 			graphics.moveTo(cx0, cy0);
 			
-			graphics.lineStyle(1,darkenColor(sampleColor, 0.6), 1);
-			graphics.curveTo(controlX1,controlY1, cx1, cy1);
+			if(lineStyleEnabled)
+				graphics.lineStyle(lineWidth, sampleColor, alpha);
 			
-			graphics.lineStyle();
+			graphics.curveTo(controlX1, controlY1, cx1, cy1);
+			
+			if(lineStyleEnabled)
+				graphics.lineStyle();
+			
 			graphics.lineTo(cx2, cy2);
 			
-			graphics.lineStyle(1,darkenColor(sampleColor, 0.6), 1);
+			if(lineStyleEnabled)
+				graphics.lineStyle(lineWidth, sampleColor, alpha);
+			
 			graphics.curveTo(controlX2, controlY2, cx3, cy3);
 			
-			graphics.lineStyle();
+			if(lineStyleEnabled)
+				graphics.lineStyle();
+			
 			graphics.lineTo(cx0, cy0);
 			
 			graphics.endFill();
-				
+			
+			objects.push({
+				t:15,
+				angle:angle,
+				dist:dist,
+				lineThickness:lineThickness,
+				lineRotation:lineRotation,
+				sampleColor:sampleColor,
+				lastColour:lastColour,
+				alpha:alpha,
+				lineStyleEnabled:lineStyleEnabled,
+				lineWidth:lineWidth,
+				cx0:cx0,
+				cy0:cy0,
+				cx1:cx1,
+				cy1:cy1,
+				cx2:cx2,
+				cy2:cy2,
+				cx3:cx3,
+				cy3:cy3,
+				controlX1:controlX1,
+				controlY1:controlY1,
+				controlX2:controlX2,
+				controlY2:controlY2,
+				lastSmoothedMouseX:lastSmoothedMouseX,
+				lastSmoothedMouseY:lastSmoothedMouseY,
+				smoothedMouseX:smoothedMouseX,
+				smoothedMouseY:smoothedMouseY
+			});
+			
 			lastSmoothedMouseX = smoothedMouseX;
 			lastSmoothedMouseY = smoothedMouseY;
 			lastRotation = lineRotation;
-			
 			lastMouseX = mouseX;
 			lastMouseY = mouseY;
-			
 			lastThickness = lineThickness;
+			lastColour = sampleColor;
 			
-			return {t:15};
+			return objects;
 		}
 	}
 }

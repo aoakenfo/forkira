@@ -11,23 +11,54 @@ package brush
 			super();
 			
 			brushNum = 19;
+			radius = 30;
+		}
+
+		override public function drawOp(graphics:Graphics, op:Object):void
+		{
+			graphics.lineStyle(op.lineWidth, op.sampleColor, op.alpha);
+			
+			for(var i:int = 1; i <= op.radius; i += op.lineWidth + 1)
+				graphics.drawCircle(op.mouseX, op.mouseY, i);
+			
+			graphics.endFill();
 		}
 		
-		override public function draw(graphics:Graphics, sampleColor:Number, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Object
+		override public function draw2(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array
 		{
-			var centerX : Number = mouseX;
-			var centerY : Number = mouseY;
-			var increment : Number = 3;
+			var objects:Array = new Array();
 			
-			graphics.lineStyle( 1, sampleColor );
-			for ( var r:uint = 0; r < 30; r ++ )
+			if(colorList != null && colorList.length > 0)
 			{
-				graphics.drawCircle( centerX, centerY, r );
-				r += 3;
+				if(currentColorListIndex >= colorList.length)
+					currentColorListIndex = colorList.length - 1; // should adjust currentIndex on delete event instead
+				
+				sampleColor = colorList.getItemAt(currentColorListIndex).fill.color;
+				++currentColorListIndex;
+				if(currentColorListIndex > colorList.length - 1)
+					currentColorListIndex = 0;
 			}
+			else
+				updateSampleColor(mouseX, mouseY);	
+			
+			graphics.lineStyle(lineWidth, sampleColor, alpha);
+			
+			for(var i:int = 1; i <= radius; i += lineWidth + 1)
+				graphics.drawCircle(mouseX, mouseY, i);
+			
 			graphics.endFill();
 			
-			return {t:19};
+			objects.push({
+				t:19,
+				lineWidth:lineWidth,
+				sampleColor:sampleColor,
+				alpha:alpha,
+				radius:radius,
+				mouseX:mouseX,
+				mouseY:mouseY
+			});
+			
+			return objects;
 		}
 	}
 }
