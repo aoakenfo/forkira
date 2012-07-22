@@ -73,7 +73,7 @@ package brush
 		
 		protected var targetLineThickness:Number;
 		protected var minThickness:Number = 0.2;
-		protected var thicknessFactor:Number = 0.25;
+		public var thicknessFactor:Number = 0.25;
 		protected var lastThickness:Number = 0;
 		protected var thicknessSmoothingFactor:Number = 0.3;
 		
