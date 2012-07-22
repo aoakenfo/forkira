@@ -134,11 +134,11 @@
 				ConsoleCommand.addCommand("load-key-binds", loadKeyBinds);
 				ConsoleCommand.addCommand("clear", clear);
 				ConsoleCommand.addCommand("load-brush", loadBrush);
-				ConsoleCommand.addCommand("line-width-brush", lineWidthBrush);
-				ConsoleCommand.addCommand("alpha-brush", alphaBrush);
-				ConsoleCommand.addCommand("radius-brush", radiusBrush);
-				ConsoleCommand.addCommand("iterations-brush", iterationsBrush);
-				ConsoleCommand.addCommand("automate-brush", automateBrush);
+				ConsoleCommand.addCommand("line-width", lineWidthBrush);
+				ConsoleCommand.addCommand("alpha", alphaBrush);
+				ConsoleCommand.addCommand("radius", radiusBrush);
+				ConsoleCommand.addCommand("iterations", iterationsBrush);
+				ConsoleCommand.addCommand("automate", automateBrush);
 				ConsoleCommand.addCommand("save-brush-settings", saveBrushSettings);
 				ConsoleCommand.addCommand("load-brush-settings", loadBrushSettings);
 				ConsoleCommand.addCommand("export", export);
@@ -174,6 +174,15 @@
 				ConsoleCommand.addCommand("line-thickness-multiplier", function (brushNum:Number, value:Number):void {
 					brushes[brushNum].lineThicknessMultiplier = value;
 				});
+				ConsoleCommand.addCommand("offset-x", function (brushNum:Number, value:Number):void {
+					brushes[brushNum].offsetX = value;
+				});
+				ConsoleCommand.addCommand("offset-y", function (brushNum:Number, value:Number):void {
+					brushes[brushNum].offsetY = value;
+				});
+				ConsoleCommand.addCommand("rounded-corner", function (brushNum:Number, value:Number):void {
+					brushes[brushNum].roundedCorner = value;
+				});
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -194,6 +203,8 @@
 				statusTimer.addEventListener(TimerEvent.TIMER_COMPLETE, function (event:TimerEvent):void {
 					status = "";
 				});
+				
+				//vgroup.swapElements(input, renderGroup);
 			}
 			
 			private function windowedApplication_enterFrameHandler(event:Event):void
@@ -1112,11 +1123,13 @@
 			
 			<s:BitmapImage id="flushBitmap" width="100%" height="100%"/>
 			
-			<s:Image id="sourceBitmap" 
-					 mouseMove="sourceBitmap_mouseMoveHandler(event)"
-					 mouseOut="sourceBitmap_mouseOutHandler(event)"
-					 mouseOver="sourceBitmap_mouseOverHandler(event)"
-					 />
+			<s:Group clipAndEnableScrolling="true" width="100%" height="100%">
+				<s:Image id="sourceBitmap" 
+						 mouseMove="sourceBitmap_mouseMoveHandler(event)"
+						 mouseOut="sourceBitmap_mouseOutHandler(event)"
+						 mouseOver="sourceBitmap_mouseOverHandler(event)"
+						 />
+			</s:Group>
 			
 			<s:SpriteVisualElement id="canvasContainer"
 								   width="100%" height="100%"/>

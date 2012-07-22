@@ -94,8 +94,8 @@ package brush
 				b.lastMouseX = b.smoothedMouseX = b.lastSmoothedMouseX = mouseX;
 				b.lastMouseY = b.smoothedMouseY = b.lastSmoothedMouseY = mouseY;
 				
-				b.lastRotation = Math.PI/2;
-				
+				b.lastRotation = 0;
+				b.lineRotation = 0;
 				b.lastThickness = 0;
 			}
 		}

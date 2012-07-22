@@ -32,8 +32,8 @@ package brush
 		public var lineStyleEnabled:Boolean = false;
 		public var offsetBristles:Boolean = true;
 		
-		protected var offsetX:Number = 0;
-		protected var offsetY:Number = 0;
+		public var offsetX:Number = 0;
+		public var offsetY:Number = 0;
 		
 		protected var mouseChangeVectorX:Number;
 		protected var mouseChangeVectorY:Number;
