@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   width="640" height="442"
+			   title="Command Listing"
+				close="titlewindow1_closeHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.IList;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			
+			[Bindable]
+			public var commandList:IList = null;
+			
+			protected function titlewindow1_closeHandler(event:CloseEvent):void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:List width="100%" height="100%" dataProvider="{commandList}">
+		<s:itemRenderer>
+			<fx:Component>
+				<s:ItemRenderer autoDrawBackground="false">
+					<s:VGroup paddingLeft="10" paddingTop="10" paddingRight="10" paddingBottom="0" 
+							  gap="10" width="100%">	
+						<s:Label text="{data}"/>
+						<s:Line width="100%">
+							<s:stroke>
+								<s:SolidColorStroke color="#cccccc"/>
+							</s:stroke>
+						</s:Line>
+					</s:VGroup>
+				</s:ItemRenderer>
+			</fx:Component>
+		</s:itemRenderer>
+	</s:List>
+
+</s:TitleWindow>

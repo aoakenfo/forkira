@@ -44,12 +44,14 @@
 			
 			import flash.utils.getDefinitionByName;
 			
+			import mx.collections.ArrayCollection;
 			import mx.collections.ArrayList;
 			import mx.controls.Alert;
 			import mx.events.FlexEvent;
 			import mx.events.IndexChangedEvent;
 			import mx.graphics.SolidColor;
 			import mx.graphics.codec.PNGEncoder;
+			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
 			import spark.events.IndexChangeEvent;
@@ -125,10 +127,10 @@
 				ConsoleCommand.addCommand("exit", _exit, false);
 				ConsoleCommand.addCommand("load-drawing", loadDrawingOverwrite);
 				ConsoleCommand.addCommand("save-drawing", saveDrawing);
-				ConsoleCommand.addCommand("open", openImage);
-				ConsoleCommand.addCommand("load", openImage);
+				ConsoleCommand.addCommand("load-image", loadImage);
+				ConsoleCommand.addCommand("load-image-path", loadImagePath);
 				ConsoleCommand.addCommand("frame-rate", _frameRate);			
-				ConsoleCommand.addCommand("source-alpha", sourceAlpha);
+				ConsoleCommand.addCommand("image-alpha", sourceAlpha);
 				ConsoleCommand.addCommand("bind-key", bindKey);
 				ConsoleCommand.addCommand("save-key-binds", saveKeyBinds);
 				ConsoleCommand.addCommand("load-key-binds", loadKeyBinds);
@@ -183,6 +185,113 @@
 				ConsoleCommand.addCommand("rounded-corner", function (brushNum:Number, value:Number):void {
 					brushes[brushNum].roundedCorner = value;
 				});
+				ConsoleCommand.addCommand("help", help, false);
+				ConsoleCommand.addCommand("help-brush", helpBrush);
+			}
+			
+			private function help():void
+			{
+				var dialog:HelpDialog = new HelpDialog();
+				PopUpManager.addPopUp(dialog, this, true);
+				
+				dialog.commandList = new ArrayCollection(new Array(
+
+					"load-image <file name>" +
+						"\n    Open a JPG or PNG image to draw." +
+						"\n    The file must be located in the application directory. Specify the file extension." +
+						"\n    Example usage: load-image pic.jpg",
+					
+					"load-image-from-path <file path>" +
+						"\n    Open a JPG or PNG image to draw." +
+						"\n    Specify the path, file and extension." +
+						"\n    Example usage: open ~/Desktop/pic.jpg",
+						
+					"image-alpha <value>" +
+						"\n    Set the transparency of the source image. Value range is 0 to 1." +
+						"\n    Example-usage: image-alpha 0.5",
+						
+					"save-drawing <file name>" +
+						"\n    " +
+						"\n    Example usage: save-drawing myDrawing",
+						
+					"load-drawing <file name>" +
+						"\n    " +
+						"\n    Example usage: load-drawing myDrawing",
+					
+					"clear" +
+						"\n    ",
+					
+					"frame-rate" +
+						"\n    " +
+						"\n    Example usage: frame-rate 60",
+					
+					"load-brush <brush #>" +
+						"\n    " +
+						"\n    Example usage: load-brush 4",
+					
+					"load-brush-settings <file name>" +
+						"\n    " +
+						"\n    Example usage: load-brush-settings myCustomBrushSettings",
+						
+					"save-brush-settings <file name>" +
+						"\n    " +
+						"\n    Example usage: save-brush-settings myCustomBrushSettings",
+					
+					"clear-all-brushes" +
+						"\n    ",
+					
+					"clear-brush <brush #>" +
+						"\n    " +
+						"\n    Example usage: clear-brush 4",
+					
+					"clear-palette" +
+						"\n    ",
+					
+					"automate <x-offset y-offset>" +
+						"\n    " +
+						"\n    Example usage: automate 10 10",
+					
+					"export <file name>" +
+						"\n    " +
+						"\n    Example usage: export myPoster",
+					
+					"frame-window" +
+						"\n    " +
+						"\n    Example usage: frame-window 1",
+					
+					"rotate-frame-window" +
+						"\n    ",
+					
+					"set-aspect-ratio-inches" +
+						"\n    " +
+						"\n    Example usage: set-aspect-ratio-inches 47 21",
+					
+					"bind-key" +
+						"\n    " +
+						"\n    Example usage:",
+					
+					"save-key-binds" +
+						"\n    " +
+						"\n    Example usage:",
+					
+					"load-key-binds" +
+						"\n    " +
+						"\n    Example usage:",
+					
+					"help-brush <brush number>" +
+						"\n    Show commands that can be used to adjust the settings of a specific brush" + 
+						"\n    Example usage: help-brush 4",
+					
+					"exit" +
+						"\n    Quit the program without saving"
+				));
+				
+				PopUpManager.centerPopUp(dialog);
+			}
+			
+			private function helpBrush(brushNum:Number):void
+			{
+				
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void
@@ -404,7 +513,7 @@
 			
 			// ........................................................................................
 			
-			private function openImage(fileName:String):void
+		 	private function loadImage(fileName:String):void
 			{
 				if(fileName == "")
 				{
@@ -416,13 +525,27 @@
 				var dirListing:Array = File.applicationDirectory.getDirectoryListing();
 				
 				for each(var file:File in dirListing)
-				{	
+				{       
 					if(file.name == fileName)
-					{	
+					{       
 						var loader:Loader = new Loader();
 						loader.contentLoaderInfo.addEventListener(Event.COMPLETE, imageLoadCompleteHandler);
 						loader.load(new URLRequest(file.url)); 
 					}
+				}
+			}
+			
+			private function loadImagePath(filePath:String):void
+			{
+				if(filePath.substr(0, 1) == "~")
+					filePath= File.userDirectory.nativePath + filePath.substr(1);
+						
+				var file:File = new File(filePath);
+				if(file.exists)
+				{
+					var loader:Loader = new Loader();
+					loader.contentLoaderInfo.addEventListener(Event.COMPLETE, imageLoadCompleteHandler);
+					loader.load(new URLRequest(file.url)); 
 				}
 			}
 			
