@@ -4,15 +4,15 @@ package brush
 	
 	import mx.collections.ArrayList;
 
-	public class Brush21 extends Brush
+	public class Brush8 extends Brush
 	{
 		public var roundedCorner:Number = 10;
 
-		public function Brush21()
+		public function Brush8()
 		{
 			super();
 			
-			brushNum = 21;
+			brushNum = 8;
 			offsetX = 30;
 			offsetY = 30;
 			lineWidth = 4;
@@ -39,7 +39,7 @@ package brush
 			graphics.endFill();
 		}
 		
-		override public function draw2(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array
+		override public function draw(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array
 		{
 			var objects:Array = new Array();
 			
@@ -72,7 +72,7 @@ package brush
 			graphics.endFill();
 			
 			objects.push({
-				t:21,
+				t:brushNum,
 				lineStyleEnabled:lineStyleEnabled,
 				lineWidth:lineWidth,
 				sampleColor:sampleColor,

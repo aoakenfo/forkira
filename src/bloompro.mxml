@@ -17,15 +17,15 @@
 		<![CDATA[
 			import brush.Brush;
 			import brush.Brush1;
-			import brush.Brush13;
-			import brush.Brush15;
-			import brush.Brush16;
-			import brush.Brush19;
-			import brush.Brush21;
-			import brush.Brush23;
-			import brush.Brush24;
+			import brush.Brush4;
+			import brush.Brush5;
 			import brush.Brush6;
 			import brush.Brush7;
+			import brush.Brush8;
+			import brush.Brush9;
+			import brush.Brush10;
+			import brush.Brush2;
+			import brush.Brush3;
 
 			import flash.utils.getDefinitionByName;
 			
@@ -47,15 +47,15 @@
 			
 			// include refs for getDefinitionByName
 			private var b1:Brush1;
-			private var b6:Brush6;
-			private var b7:Brush7;
-			private var b13:Brush13;
-			private var b15:Brush15;
-			private var b16:Brush16;
-			private var b19:Brush19;
-			private var b21:Brush21;
-			private var b23:Brush23;
-			private var b24:Brush24;
+			private var b6:Brush2;
+			private var b7:Brush3;
+			private var b13:Brush4;
+			private var b15:Brush5;
+			private var b16:Brush6;
+			private var b19:Brush7;
+			private var b21:Brush8;
+			private var b23:Brush9;
+			private var b24:Brush10;
 
 			private var frameCount:uint = 0;
 			private var curMillisecondCount:uint = 0;
@@ -953,7 +953,7 @@
 						for each(var br:Brush in brushes)
 						{
 							opsStream.writeObject(
-								br.draw2(canvasContainer.graphics,
+								br.draw(canvasContainer.graphics,
 									sourceBitmap.x + i,
 									sourceBitmap.y + j,
 									null
@@ -1048,7 +1048,7 @@
 				for each(var br:Brush in brushes)
 				{
 					opsStream.writeObject(
-						br.draw2(canvasContainer.graphics,
+						br.draw(canvasContainer.graphics,
 								event.stageX - renderGroup.x,
 								event.stageY - renderGroup.y,
 								colorList)

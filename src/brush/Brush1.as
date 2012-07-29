@@ -27,7 +27,7 @@ package brush
 				graphics.lineTo(op.mouseX - op.centerOffset + Math.random() * op.radius, op.mouseY - op.centerOffset + Math.random() * op.radius);	
 		}
 		
-		override public function draw2(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array
+		override public function draw(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array
 		{
 			var objects:Array = new Array();
 			
@@ -58,7 +58,7 @@ package brush
 				graphics.lineTo(mouseX - centerOffset + Math.random() * radius, mouseY - centerOffset + Math.random() * radius);
 			
 			objects.push({
-				t:1,
+				t:brushNum,
 				lineWidth:lineWidth,
 				sampleColor:sampleColor,
 				alpha:alpha,

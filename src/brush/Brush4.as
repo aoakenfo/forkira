@@ -7,13 +7,13 @@ package brush
 	
 	import mx.collections.ArrayList;
 
-	public class Brush13 extends Brush
+	public class Brush4 extends Brush
 	{
-		public function Brush13()
+		public function Brush4()
 		{
 			super();
 			
-			brushNum = 13;
+			brushNum = 4;
 			lineThickness = 40;
 			lineStyleEnabled = true;
 		}
@@ -75,7 +75,7 @@ package brush
 			graphics.endFill();
 		}
 		
-		override public function draw2(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array
+		override public function draw(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array
 		{
 			var objects:Array = new Array();
 			
@@ -215,7 +215,7 @@ package brush
 			graphics.endFill();
 			
 			objects.push({
-				t:13,
+				t:brushNum,
 				dist:dist,
 				lineStyleEnabled:lineStyleEnabled,
 				lineThickness:lineThickness,
