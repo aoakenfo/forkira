@@ -17,31 +17,16 @@
 		<![CDATA[
 			import brush.Brush;
 			import brush.Brush1;
-			import brush.Brush10;
-			import brush.Brush11;
-			import brush.Brush12;
 			import brush.Brush13;
-			import brush.Brush14;
 			import brush.Brush15;
 			import brush.Brush16;
-			import brush.Brush17;
-			import brush.Brush18;
 			import brush.Brush19;
-			import brush.Brush2;
-			import brush.Brush20;
 			import brush.Brush21;
-			import brush.Brush22;
 			import brush.Brush23;
 			import brush.Brush24;
-			import brush.Brush25;
-			import brush.Brush3;
-			import brush.Brush4;
-			import brush.Brush5;
 			import brush.Brush6;
 			import brush.Brush7;
-			import brush.Brush8;
-			import brush.Brush9;
-			
+
 			import flash.utils.getDefinitionByName;
 			
 			import mx.collections.ArrayCollection;
@@ -62,31 +47,16 @@
 			
 			// include refs for getDefinitionByName
 			private var b1:Brush1;
-			private var b2:Brush2;
-			private var b3:Brush3;
-			private var b4:Brush4;
-			private var b5:Brush5;
 			private var b6:Brush6;
 			private var b7:Brush7;
-			private var b8:Brush8;
-			private var b9:Brush9;
-			private var b10:Brush10;
-			private var b11:Brush11;
-			private var b12:Brush12;
 			private var b13:Brush13;
-			private var b14:Brush14;
 			private var b15:Brush15;
 			private var b16:Brush16;
-			private var b17:Brush17;
-			private var b18:Brush18;
 			private var b19:Brush19;
-			private var b20:Brush20;
 			private var b21:Brush21;
-			private var b22:Brush22;
 			private var b23:Brush23;
 			private var b24:Brush24;
-			private var b25:Brush25;
-			
+
 			private var frameCount:uint = 0;
 			private var curMillisecondCount:uint = 0;
 			private var prevMillisecondCount:uint = getTimer();
@@ -211,72 +181,76 @@
 						"\n    Example-usage: image-alpha 0.5",
 						
 					"save-drawing <file name>" +
-						"\n    " +
+						"\n    Save the current drawing to file. Does not save any brush settings." +
 						"\n    Example usage: save-drawing myDrawing",
 						
 					"load-drawing <file name>" +
-						"\n    " +
+						"\n    Load a previous drawing from file. Does not recreate any of the brushes used in drawing." +
 						"\n    Example usage: load-drawing myDrawing",
 					
 					"clear" +
-						"\n    ",
+						"\n    Clears the current drawing without saving.",
 					
 					"frame-rate" +
-						"\n    " +
+						"\n    Set the target frame rate. The default is 60 frames per second (fps)." +
 						"\n    Example usage: frame-rate 60",
 					
-					"load-brush <brush #>" +
-						"\n    " +
+					"load-brush <brush number>" +
+						"\n    Load a brush. Brush numbers range from 1-10." +
 						"\n    Example usage: load-brush 4",
 					
 					"load-brush-settings <file name>" +
-						"\n    " +
+						"\n    Load brush settings from a file." +
 						"\n    Example usage: load-brush-settings myCustomBrushSettings",
 						
 					"save-brush-settings <file name>" +
-						"\n    " +
+						"\n    Save brush settings to a file." +
 						"\n    Example usage: save-brush-settings myCustomBrushSettings",
 					
 					"clear-all-brushes" +
-						"\n    ",
+						"\n    Remove all brushes and settings.",
 					
-					"clear-brush <brush #>" +
-						"\n    " +
+					"clear-brush <brush number>" +
+						"\n    Clear a specific brush." +
 						"\n    Example usage: clear-brush 4",
 					
 					"clear-palette" +
-						"\n    ",
+						"\n    Remove all colors from the palette.",
 					
 					"automate <x-offset y-offset>" +
-						"\n    " +
+						"\n    Simulate a mouse click every x, y offset." +
 						"\n    Example usage: automate 10 10",
 					
 					"export <file name>" +
-						"\n    " +
+						"\n    Export a poster sized PNG." +
 						"\n    Example usage: export myPoster",
 					
 					"frame-window" +
-						"\n    " +
+						"\n    Show or hide the poster frame window." +
+						"\n    ⌘= to increase size by 10 pixels. ⌘⇧= to increase size by 1 pixel." +
+						"\n    ⌘- to decrase size by 10 pixels. ⌘⇧- to decrease size by 1 pixel." +
+						"\n    ⌘⇠⇡⇢⇣ to move positiion by 10 pixels. ⌘⇧⇠⇡⇢⇣ to move position by 1 pixel." +
 						"\n    Example usage: frame-window 1",
 					
 					"rotate-frame-window" +
-						"\n    ",
+						"\n    Rotate the frame window between portrait and landscape.",
 					
 					"set-aspect-ratio-inches" +
-						"\n    " +
+						"\n    Determines the size of the image to export. Default is 41' x 27'." +
 						"\n    Example usage: set-aspect-ratio-inches 47 21",
 					
 					"bind-key" +
-						"\n    " +
-						"\n    Example usage:",
+						"\n    Bind a command to a key, allowing you to change brush properties in realtime." +
+						'\n    Example usage: bind-key r "radius 1 50"' +
+						'\n    Example usage: bind-key r "radius 1 50; line-width 1 1"',
 					
 					"save-key-binds" +
-						"\n    " +
-						"\n    Example usage:",
+						"\n    Saves the current set of key binds to file." +
+						"\n    Example usage: save-key-binds myKeyBinds",
 					
 					"load-key-binds" +
-						"\n    " +
-						"\n    Example usage:",
+						"\n    Load a previous set of key binds from file." +
+						"\n    Example usage: load-key-binds myKeyBinds",
 					
 					"help-brush <brush number>" +
 						"\n    Show commands that can be used to adjust the settings of a specific brush" + 
