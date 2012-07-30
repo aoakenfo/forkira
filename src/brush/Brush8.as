@@ -88,5 +88,31 @@ package brush
 			
 			return objects;
 		}
+		
+		override public function help():Array
+		{
+			return new Array(
+				"line-style-enabled <brush number, value>" +
+				"\n    Example usage: line-style-enabled 8 1",
+				
+				"line-width <brush number, value>" +
+				"\n    Example usage: line-width 8 10",
+				
+				"alpha <brush number, value>" +
+				"\n    Example usage: alpha 8 0.5",
+				
+				"offset-x <brush number, value>" +
+				"\n    Example usage: randomize-offset 8 10",
+				
+				"offset-y <brush number, value>" +
+				"\n    Example usage: offset-y 8 20",
+				
+				"randomize-offset <brush number, value>" +
+				"\n    Example usage: randomize-offset 8 1",
+				
+				"plus-minus-offset-range <brush number, value>" +
+				"\n    Examlple usage: plus-minus-offset-range 8 40"
+			);
+		}
 	}
 }

@@ -66,10 +66,28 @@ package brush
 				mouseY:mouseY,
 				iterations:iterations,
 				centerOffset:centerOffset,
-				radius:radius
+				radius:radius,
+				plusMinusOffsetRange:plusMinusOffsetRange
 			});
 			
 			return objects;
+		}
+		
+		override public function help():Array
+		{
+			return new Array(
+				"line-width <brush number, value>" +
+				"\n    Example usage: line-width 1 10",
+				
+				"alpha <brush number, value>" +
+				"\n    Example usage: alpha 1 0.5",
+				
+				"iterations <brush number, value>" +
+				"\n    Example usage: iterations 1 50",
+				
+				"radius <brush number, value>" +
+				"\n    Example usage: radius 1 50"
+			);
 		}
 	}
 }

@@ -139,9 +139,7 @@ package brush
 			else
 				lineRotation = 0;
 			
-			//We use a similar smoothing technique to change the thickness of the line, so that it doesn't
-			//change too abruptly.
-			targetLineThickness = minThickness + thicknessFactor * dist;
+			//targetLineThickness = minThickness + thicknessFactor * dist;
 			//lineThickness = lastThickness + thicknessSmoothingFactor * (targetLineThickness - lastThickness);
 			
 			sin0 = Math.sin(lastRotation);
@@ -253,6 +251,23 @@ package brush
 			lastColour = sampleColor;
 			
 			return objects;
+		}
+		
+		override public function help():Array
+		{
+			return new Array(
+				"line-style-enabled <brush number, value>" +
+				"\n    Example usage: line-style-enabled 4 0",
+				
+				"line-width <brush number, value>" +
+				"\n    Example usage: line-width 4 10",
+				
+				"alpha <brush number, value>" +
+				"\n    Example usage: alpha 4 0.5",
+				
+				"line-thickness <brush number, value>" +
+				"\n    Example usage: line-thickness 4 30"
+			);
 		}
 	}
 }

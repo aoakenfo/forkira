@@ -14,8 +14,11 @@ package brush
 			super();
 			
 			brushNum = 6;
+			lineThicknessMultiplier = .25;
+			alpha = .5;
+			plusMinusOffsetRange = 20;
 			
-			totalBristles(1);
+			totalBristles(5);
 		}
 		
 		override public function totalBristles(numBristles:Number):void
@@ -60,7 +63,6 @@ package brush
 					smoothingFactor: 0.5,
 					targetLineThickness: 0,
 					minThickness: 0.2,
-					thicknessFactor: 0.25,
 					lastThickness: 0,
 					thicknessSmoothingFactor: 0.3,
 					tipTaperFactor: 0.8,
@@ -119,7 +121,7 @@ package brush
 				mat);
 			
 			if(op.lineStyleEnabled)
-				graphics.lineStyle(1,darkenColor(op.sampleColor, op.alpha), op.alpha);
+				graphics.lineStyle(alpha, op.sampleColor, op.alpha);
 			
 			graphics.moveTo(op.cx0, op.cy0);
 			graphics.curveTo(op.controlX1,op.controlY1, op.cx1, op.cy1);
@@ -130,7 +132,7 @@ package brush
 			graphics.lineTo(op.cx2, op.cy2);
 			
 			if(op.lineStyleEnabled)
-				graphics.lineStyle(1,darkenColor(op.sampleColor, op.alpha), op.alpha);
+				graphics.lineStyle(alpha, op.sampleColor, op.alpha);
 			
 			graphics.curveTo(op.controlX2, op.controlY2, op.cx3, op.cy3);
 			
@@ -213,8 +215,8 @@ package brush
 				
 				//b.targetLineThickness = b.minThickness + b.thicknessFactor * b.dist;
 				//b.lineThickness = b.lastThickness + b.thicknessSmoothingFactor * (b.targetLineThickness - b.lastThickness);
-				b.thicknessFactor = 0.25;
-				b.lineThickness = b.dist * b.thicknessFactor;
+				//b.thicknessFactor = 0.25;
+				b.lineThickness = b.dist * 0.25;//b.thicknessFactor;
 				
 				b.sin0 = Math.sin(b.lastRotation);
 				b.cos0 = Math.cos(b.lastRotation);
@@ -279,7 +281,7 @@ package brush
 					mat);
 			
 				if(lineStyleEnabled)
-					graphics.lineStyle(1,darkenColor(sampleColor, alpha), alpha);
+					graphics.lineStyle(alpha, sampleColor, alpha);
 				
 				graphics.moveTo(cx0, cy0);
 				graphics.curveTo(b.controlX1,b.controlY1, cx1, cy1);
@@ -290,7 +292,7 @@ package brush
 				graphics.lineTo(cx2, cy2);
 				
 				if(lineStyleEnabled)
-					graphics.lineStyle(1,darkenColor(sampleColor, alpha), alpha);
+					graphics.lineStyle(alpha, sampleColor, alpha);
 				
 				graphics.curveTo(b.controlX2, b.controlY2, cx3, cy3);
 				
@@ -334,6 +336,29 @@ package brush
 			}
 			
 			return objects;
+		}
+		
+		override public function help():Array
+		{
+			return new Array(
+				"line-style-enabled <brush number, value>" +
+				"\n    Example usage: line-style-enabled 6 1",
+				
+				"line-width <brush number, value>" +
+				"\n    Example usage: line-width 6 10",
+				
+				"alpha <brush number, value>" +
+				"\n    Example usage: alpha 6 0.5",
+				
+				"total-bristles <brush number, value>" +
+				"\n    Example usage: total-bristles 6 10",
+				
+				"randomize-offset <brush number, value>" +
+				"\n    Example usage: randomize-offset 6 1",
+				
+				"plus-minus-offset-range <brush number, value>" +
+				"\n    Examlple usage: plus-minus-offset-range 6 40"
+			);
 		}
 	}
 }

@@ -127,5 +127,22 @@ package brush
 			
 			return objects;
 		}
+		
+		override public function help():Array
+		{
+			return new Array(
+				"line-style-enabled <brush number, value>" +
+				"\n    Example usage: line-style-enabled 3 0",
+				
+				"line-width <brush number, value>" +
+				"\n    Example usage: line-width 3 10",
+				
+				"alpha <brush number, value>" +
+				"\n    Example usage: alpha 3 0.5",
+				
+				"line-thickness <brush number, value>" +
+				"\n    Example usage: line-thickness 3 30"
+			);
+		}
 	}
 }

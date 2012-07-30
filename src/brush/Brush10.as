@@ -242,5 +242,25 @@ package brush
 			
 			return objects;
 		}
+		
+		override public function help():Array
+		{
+			return new Array(
+				"line-style-enabled <brush number, value>" +
+				"\n    Example usage: line-style-enabled 10 1",
+				
+				"line-width <brush number, value>" +
+				"\n    Example usage: line-width 10 10",
+				
+				"alpha <brush number, value>" +
+				"\n    Example usage: alpha 10 0.5",
+				
+				"iterations <brush number, value>" +
+				"\n    Example usage: iterations 10 50",
+				
+				"plus-minus-offset-range <brush number, value>" +
+				"\n    Examlple usage: plus-minus-offset-range 10 15"
+			);
+		}
 	}
 }

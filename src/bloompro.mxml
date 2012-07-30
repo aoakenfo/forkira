@@ -265,7 +265,12 @@
 			
 			private function helpBrush(brushNum:Number):void
 			{
+				var dialog:HelpDialog = new HelpDialog();
+				PopUpManager.addPopUp(dialog, this, true);
 				
+				dialog.commandList = new ArrayCollection(brushes[brushNum].help());
+				
+				PopUpManager.centerPopUp(dialog);
 			}
 			
 			protected function windowedapplication_creationCompleteHandler(event:FlexEvent):void

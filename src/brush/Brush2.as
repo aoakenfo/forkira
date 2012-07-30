@@ -12,6 +12,7 @@ package brush
 			
 			brushNum = 2;
 			lineStyleEnabled = true;
+			lineThickness = 15;
 			lineThicknessMultiplier = 10;
 		}
 		
@@ -114,6 +115,23 @@ package brush
 			lastColour = sampleColor;
 			
 			return objects;
+		}
+		
+		override public function help():Array
+		{
+			return new Array(
+				"line-style-enabled <brush number, value>" +
+				"\n    Example usage: line-style-enabled 2 0",
+				
+				"line-width <brush number, value>" +
+				"\n    Example usage: line-width 2 10",
+				
+				"alpha <brush number, value>" +
+				"\n    Example usage: alpha 2 0.5",
+				
+				"line-thickness-multiplier <brush number, value>" +
+				"\n    Example usage: line-thickness-multiplier 2 20"
+			);
 		}
 	}
 }

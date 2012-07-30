@@ -46,8 +46,6 @@ package brush
 			for(var i:int = 1; i <= radius; i += lineWidth + 1)
 				graphics.drawCircle(mouseX, mouseY, i);
 			
-			graphics.endFill();
-			
 			objects.push({
 				t:brushNum,
 				lineWidth:lineWidth,
@@ -59,6 +57,20 @@ package brush
 			});
 			
 			return objects;
+		}
+		
+		override public function help():Array
+		{
+			return new Array(
+				"line-width <brush number, value>" +
+				"\n    Example usage: line-width 7 10",
+				
+				"alpha <brush number, value>" +
+				"\n    Example usage: alpha 7 0.5",
+				
+				"radius <brush number, value>" +
+				"\n    Example usage: radius 7 10"
+			);
 		}
 	}
 }

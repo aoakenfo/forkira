@@ -15,7 +15,7 @@ package brush
 			lineStyleEnabled = false;
 			alpha = .25;
 			iterations = 10;
-			plusMinusOffsetRange = 5;
+			plusMinusOffsetRange = 3;
 		}
 		
 		override public function mouseDown(mouseX:Number, mouseY:Number):void
@@ -230,6 +230,29 @@ package brush
 			}
 			
 			return objects;
+		}
+		
+		override public function help():Array
+		{
+			return new Array(
+				"line-style-enabled <brush number, value>" +
+				"\n    Example usage: line-style-enabled 9 1",
+				
+				"line-width <brush number, value>" +
+				"\n    Example usage: line-width 9 10",
+				
+				"alpha <brush number, value>" +
+				"\n    Example usage: alpha 9 0.5",
+				
+				"line-thickness <brush number, value>" +
+				"\n    Example usage: line-thickness 9 1",
+				
+				"iterations <brush number, value>" +
+				"\n    Example usage: iterations 9 50",
+				
+				"plus-minus-offset-range <brush number, value>" +
+				"\n    Examlple usage: plus-minus-offset-range 9 15"
+			);
 		}
 	}
 }

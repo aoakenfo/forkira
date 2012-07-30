@@ -113,6 +113,11 @@ package brush
 		public function drawOp(graphics:Graphics, op:Object):void { }
 		public function draw(graphics:Graphics, mouseX:Number, mouseY:Number, colorList:ArrayList = null):Array { return null; }
 		
+		public function help():Array
+		{
+			return null;
+		}
+		
 		protected function toRad(a:Number):Number
 		{
 			return a*Math.PI/180;
