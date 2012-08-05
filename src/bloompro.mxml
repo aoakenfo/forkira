@@ -17,16 +17,16 @@
 		<![CDATA[
 			import brush.Brush;
 			import brush.Brush1;
+			import brush.Brush10;
+			import brush.Brush2;
+			import brush.Brush3;
 			import brush.Brush4;
 			import brush.Brush5;
 			import brush.Brush6;
 			import brush.Brush7;
 			import brush.Brush8;
 			import brush.Brush9;
-			import brush.Brush10;
-			import brush.Brush2;
-			import brush.Brush3;
-
+			
 			import flash.utils.getDefinitionByName;
 			
 			import mx.collections.ArrayCollection;
@@ -39,6 +39,10 @@
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
+			import ru.inspirit.encoders.png.PNGEncoder;
+			import ru.inspirit.encoders.png.PNGEncoderInfo;
+			
+			import spark.components.Application;
 			import spark.events.IndexChangeEvent;
 			import spark.filters.DropShadowFilter;
 			import spark.skins.spark.ImageSkin;
@@ -313,7 +317,10 @@
 			private function _exit():void
 			{ 
 				if(opsStream != null)
+				{
 					opsStream.close();
+					opsStream = null;
+				}
 				
 				exit(); 
 			}
@@ -676,6 +683,15 @@
 					return;
 				}
 				
+				var dialog:ExportDialog = new ExportDialog();
+				PopUpManager.addPopUp(dialog, this, true);
+				
+				dialog.progressBar.label = "";
+				dialog.progressBar.setProgress(0, 100);
+				dialog.statusLabel.text = "creating empty bitmap...";
+				
+				PopUpManager.centerPopUp(dialog);
+				
 				if(frameWindowRect == null)
 					createFrameRect(640);
 
@@ -686,13 +702,6 @@
 					
 				var scaleX:Number = targetWidth  / frameWindowRect.width;
 				var scaleY:Number = targetHeight / frameWindowRect.height;
-				
-				trace('targetWidth = ' + targetWidth);
-				trace('targetHeight = ' + targetHeight);
-				trace('frameWindowRect.width = ' + frameWindowRect.width);
-				trace('frameWindowRect.height = ' + frameWindowRect.height);
-				trace('scaleX = ' + scaleX);
-				trace('scaleY = ' + scaleY);
 				
 				if(opsStream != null)
 					opsStream.close();
@@ -708,10 +717,13 @@
 				var tempBrushes:Array = new Array();
 				var tempOps:Array = new Array();
 				
+				dialog.statusLabel.text = "loading ops...";
+				
 				while(opsStream.bytesAvailable > 0)
 					tempOps.push(opsStream.readObject());
 				
 				opsStream.close();
+				opsStream = null;
 				
 				var divisions:int = 10;
 				var interval:int = int(tempOps.length / divisions);
@@ -720,6 +732,8 @@
 				var offset:int = interval;
 				
 				t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
+					
+					dialog.progressBar.setProgress(dialog.progressBar.value + 1, 100);
 					
 					for(; i < offset; ++i)
 					{
@@ -743,8 +757,6 @@
 					
 					var m:Matrix = new Matrix();
 					
-//					var centerX:Number = renderGroup.width / 2;
-//					var centerY:Number = renderGroup.height / 2;
 					var centerX:Number = frameWindowRect.x + (frameWindowRect.width  / 2);
 					var centerY:Number = frameWindowRect.y + (frameWindowRect.height / 2);
 					
@@ -754,6 +766,7 @@
 					m.translate(-xOffset, -yOffset);
 					m.scale(scaleX, scaleY);
 					
+					dialog.statusLabel.text = "rendering to bitmap..." + dialog.progressBar.value + "%";
 					exportBitmap.bitmapData.draw(canvasContainer, m);
 					canvasContainer.graphics.clear();
 					
@@ -765,19 +778,55 @@
 					
 				});
 				
+				var png:ru.inspirit.encoders.png.PNGEncoder = new ru.inspirit.encoders.png.PNGEncoder();
+				
+				png.addEventListener(ProgressEvent.PROGRESS, 
+					function (e:ProgressEvent):void 
+					{
+						dialog.progressBar.setProgress(10 + (e.bytesLoaded / e.bytesTotal * 85), 100);
+						dialog.statusLabel.text = 'encoding byte array...' + Math.round(dialog.progressBar.value*100)/100 + "%";
+					}
+				);
+				
+				png.addEventListener(Event.COMPLETE, 
+					function (e:Event = null):void 
+					{
+						var data:ByteArray = ru.inspirit.encoders.png.PNGEncoder.encodedPNGData;
+						var exportFile:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".png")
+						var fs:FileStream = new FileStream();
+						
+						fs.addEventListener(OutputProgressEvent.OUTPUT_PROGRESS, 
+							function (e:OutputProgressEvent):void {
+								
+								if(e.bytesPending == 0)
+								{
+									dialog.progressBar.setProgress(100, 100);
+									dialog.statusLabel.text = "file exported!";
+									
+									var t:Timer = new Timer(2, 1);
+									t.addEventListener(TimerEvent.TIMER_COMPLETE, function (e:Event):void
+									{
+										PopUpManager.removePopUp(dialog);
+									});
+									t.start();
+								}
+								else
+								{
+									dialog.progressBar.setProgress(95 + ((1 - e.bytesPending/e.bytesTotal) * 5), 100);
+									dialog.statusLabel.text = 'exporting file...' + Math.round(dialog.progressBar.value*100)/100 + "%";
+								}
+							}
+						);
+						
+						fs.openAsync(exportFile,FileMode.WRITE);
+						fs.writeBytes(data);
+						fs.close();
+					}
+				);
+				
 				t.addEventListener(TimerEvent.TIMER_COMPLETE, function(event:TimerEvent):void {
 					
-					trace("encoding byte array...");
-					var png:PNGEncoder = new PNGEncoder();
-					var byteArray:ByteArray = png.encode(exportBitmap.bitmapData);
-					
-					trace("exporting file...");
-					var exportFile:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".png")
-					var fs:FileStream = new FileStream();
-					fs.open(exportFile,FileMode.WRITE);
-					fs.writeBytes(byteArray);
-					fs.close();
-					trace("file exported");
+					png.encodeAsync(exportBitmap.bitmapData);
 				});
 				
 				t.start();
@@ -1003,6 +1052,8 @@
 					tempOps.push(opsStream.readObject());
 				
 				opsStream.close();
+				opsStream = null;
+				
 				file.copyTo(
 					new File(File.applicationDirectory.nativePath + File.separator + "temp.ops"),
 					true
