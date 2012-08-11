@@ -81,7 +81,8 @@
 			
 			private var brushes:Array = new Array();
 			
-			private var lastCommandInput:String = "";
+			private var lastCommandInput:Array = new Array();
+			private var lastInputIndex:int = -1;
 			
 			private var opsStream:FileStream = null;
 			private var opsFile:File = null;
@@ -172,12 +173,7 @@
 					"load-image <file name>" +
 						"\n    Open a JPG or PNG image to draw." +
 						"\n    The file must be located in the application directory. Specify the file extension." +
-						"\n    Example usage: load-image pic.jpg",
-					
-					"load-image-from-path <file path>" +
-						"\n    Open a JPG or PNG image to draw." +
-						"\n    Specify the path, file and extension." +
-						"\n    Example usage: open ~/Desktop/pic.jpg",
+						"\n    Example usage: load-image ~/Desktop/pic.jpg",
 						
 					"image-alpha <value>" +
 						"\n    Set the transparency of the source image. Value range is 0 to 1." +
@@ -476,7 +472,8 @@
 						break;
 					
 					case Keyboard.ENTER:
-						lastCommandInput = input.text;
+						lastCommandInput.push(input.text);
+						++lastInputIndex;
 						try
 						{
 							ConsoleCommand.process(input.text);
@@ -491,7 +488,21 @@
 						break;
 					
 					case Keyboard.UP:
-						input.appendText(lastCommandInput);
+						
+						input.text = "";
+						input.appendText(lastCommandInput[lastInputIndex]);
+
+						if(lastInputIndex > 0)
+							--lastInputIndex;
+						
+						break;
+					
+					case Keyboard.DOWN:
+						if(lastInputIndex < lastCommandInput.length - 1)
+							++lastInputIndex;
+						
+						input.text = "";
+						input.appendText(lastCommandInput[lastInputIndex]);
 
 						break;
 				}
