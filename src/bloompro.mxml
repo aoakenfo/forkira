@@ -99,10 +99,9 @@
 				this.nativeWindow.maximize();
 				
 				ConsoleCommand.addCommand("exit", _exit, false);
-				ConsoleCommand.addCommand("load-drawing", loadDrawingOverwrite);
+				ConsoleCommand.addCommand("load-drawing", loadDrawing);
 				ConsoleCommand.addCommand("save-drawing", saveDrawing);
-				ConsoleCommand.addCommand("load-image", loadImage);
-				ConsoleCommand.addCommand("load-image-path", loadImagePath);
+				ConsoleCommand.addCommand("load-image", loadImagePath);
 				ConsoleCommand.addCommand("frame-rate", _frameRate);			
 				ConsoleCommand.addCommand("image-alpha", sourceAlpha);
 				ConsoleCommand.addCommand("bind-key", bindKey);
@@ -269,6 +268,9 @@
 			
 			private function helpBrush(brushNum:Number):void
 			{
+				if(brushes[brushNum] == null)
+					return;
+				
 				var dialog:HelpDialog = new HelpDialog();
 				PopUpManager.addPopUp(dialog, this, true);
 				
@@ -688,7 +690,6 @@
 				
 				dialog.progressBar.label = "";
 				dialog.progressBar.setProgress(0, 100);
-				dialog.statusLabel.text = "creating empty bitmap...";
 				
 				PopUpManager.centerPopUp(dialog);
 				
@@ -707,129 +708,159 @@
 					opsStream.close();
 				else
 				{
-					opsFile = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".ops");
+					var filePath:String = File.applicationDirectory.nativePath + File.separator + fileName + ".ops";
+					opsFile = new File(filePath);
 					opsStream = new FileStream();
 					opsStream.objectEncoding = ObjectEncoding.AMF3;
 				}
 				
-				opsStream.open(opsFile, FileMode.READ);
-
-				var tempBrushes:Array = new Array();
-				var tempOps:Array = new Array();
-				
-				dialog.statusLabel.text = "loading ops...";
-				
-				while(opsStream.bytesAvailable > 0)
-					tempOps.push(opsStream.readObject());
-				
-				opsStream.close();
-				opsStream = null;
-				
-				var divisions:int = 10;
-				var interval:int = int(tempOps.length / divisions);
-				var t:Timer = new Timer(0.01, divisions + 1);
-				var i:int = 0;
-				var offset:int = interval;
-				
-				t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
+				opsStream.addEventListener(ProgressEvent.PROGRESS, function(e:ProgressEvent):void {
 					
-					dialog.progressBar.setProgress(dialog.progressBar.value + 1, 100);
+					dialog.statusLabel.text = "loading ops..." + Math.round(e.bytesLoaded / e.bytesTotal * 100) + "%";
+					dialog.progressBar.setProgress(Math.round(e.bytesLoaded / e.bytesTotal * 100), 100);
 					
-					for(; i < offset; ++i)
-					{
-						var ops:Array = tempOps[i];
+				});
+				
+				opsStream.addEventListener(Event.COMPLETE, function(e:Event):void {
+					
+					var tempBrushes:Array = new Array();
+					var tempOps:Array = new Array();
+					
+					var origFps:Number = stage.frameRate;
+					stage.frameRate = 1000; // timers ultimately limited by frame rate
+					
+					var rt:Timer = new Timer(0.001);
+					var count:uint = 0;
+					var totalBytes:uint = opsStream.bytesAvailable;
+					
+					rt.addEventListener(TimerEvent.TIMER, function (e:TimerEvent):void {
 						
-						if(ops != null) 
+						if(opsStream.bytesAvailable > 0)
 						{
-							for each(var op:Object in ops)
-							{
-								if(tempBrushes[op.t] == null)
-								{
-									var BrushClass:Class = getDefinitionByName("brush.Brush" + op.t) as Class;
-									tempBrushes[op.t] = new BrushClass();
-									tempBrushes[op.t].sourceBitmap = sourceBitmap;
-								}
-						
-								tempBrushes[op.t].drawOp(canvasContainer.graphics, op)
-							}
+							dialog.statusLabel.text = "reading object " + (++count);
+							dialog.progressBar.setProgress(Math.round((1-opsStream.bytesAvailable/totalBytes) * 100), 100);
+							
+							tempOps.push(opsStream.readObject());
 						}
-					}
-					
-					var m:Matrix = new Matrix();
-					
-					var centerX:Number = frameWindowRect.x + (frameWindowRect.width  / 2);
-					var centerY:Number = frameWindowRect.y + (frameWindowRect.height / 2);
-					
-					var xOffset:Number = centerX - (frameWindowRect.width  / 2);
-					var yOffset:Number = centerY - (frameWindowRect.height / 2);
-					
-					m.translate(-xOffset, -yOffset);
-					m.scale(scaleX, scaleY);
-					
-					dialog.statusLabel.text = "rendering to bitmap..." + dialog.progressBar.value + "%";
-					exportBitmap.bitmapData.draw(canvasContainer, m);
-					canvasContainer.graphics.clear();
-					
-					// TODO: LineScaleMode.NONE option
-					
-					offset += interval;
-					if(offset > tempOps.length)
-						offset = tempOps.length;
-					
-				});
-				
-				var png:ru.inspirit.encoders.png.PNGEncoder = new ru.inspirit.encoders.png.PNGEncoder();
-				
-				png.addEventListener(ProgressEvent.PROGRESS, 
-					function (e:ProgressEvent):void 
-					{
-						dialog.progressBar.setProgress(10 + (e.bytesLoaded / e.bytesTotal * 85), 100);
-						dialog.statusLabel.text = 'encoding byte array...' + Math.round(dialog.progressBar.value*100)/100 + "%";
-					}
-				);
-				
-				png.addEventListener(Event.COMPLETE, 
-					function (e:Event = null):void 
-					{
-						var data:ByteArray = ru.inspirit.encoders.png.PNGEncoder.encodedPNGData;
-						var exportFile:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".png")
-						var fs:FileStream = new FileStream();
-						
-						fs.addEventListener(OutputProgressEvent.OUTPUT_PROGRESS, 
-							function (e:OutputProgressEvent):void {
+						else
+						{			
+							rt.stop();
+							
+							opsStream.close();
+							opsStream = null;
+							
+							var divisions:int = int(tempOps.length * 0.10);
+							var interval:int = int(tempOps.length / divisions);
+							var t:Timer = new Timer(0.001, divisions + 1);
+							var i:int = 0;
+							var offset:int = interval;
+							
+							t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
 								
-								if(e.bytesPending == 0)
+								dialog.progressBar.setProgress(dialog.progressBar.value + 1, 100);
+								
+								for(; i < offset; ++i)
 								{
-									dialog.progressBar.setProgress(100, 100);
-									dialog.statusLabel.text = "file exported!";
+									var ops:Array = tempOps[i];
 									
-									var t:Timer = new Timer(2, 1);
-									t.addEventListener(TimerEvent.TIMER_COMPLETE, function (e:Event):void
+									if(ops != null) 
 									{
-										PopUpManager.removePopUp(dialog);
-									});
-									t.start();
+										for each(var op:Object in ops)
+										{
+											if(tempBrushes[op.t] == null)
+											{
+												var BrushClass:Class = getDefinitionByName("brush.Brush" + op.t) as Class;
+												tempBrushes[op.t] = new BrushClass();
+												tempBrushes[op.t].sourceBitmap = sourceBitmap;
+											}
+											
+											tempBrushes[op.t].drawOp(canvasContainer.graphics, op)
+										}
+									}
 								}
-								else
+								
+								var m:Matrix = new Matrix();
+								
+								var centerX:Number = frameWindowRect.x + (frameWindowRect.width  / 2);
+								var centerY:Number = frameWindowRect.y + (frameWindowRect.height / 2);
+								
+								var xOffset:Number = centerX - (frameWindowRect.width  / 2);
+								var yOffset:Number = centerY - (frameWindowRect.height / 2);
+								
+								m.translate(-xOffset, -yOffset);
+								m.scale(scaleX, scaleY);
+								
+								dialog.statusLabel.text = "rendering to bitmap..." + dialog.progressBar.value + "%";
+								exportBitmap.bitmapData.draw(canvasContainer, m);
+								canvasContainer.graphics.clear();
+								
+								offset += interval;
+								if(offset > tempOps.length)
+									offset = tempOps.length;
+								
+							});
+							
+							var png:ru.inspirit.encoders.png.PNGEncoder = new ru.inspirit.encoders.png.PNGEncoder();
+							
+							png.addEventListener(ProgressEvent.PROGRESS, 
+								function (e:ProgressEvent):void 
 								{
-									dialog.progressBar.setProgress(95 + ((1 - e.bytesPending/e.bytesTotal) * 5), 100);
-									dialog.statusLabel.text = 'exporting file...' + Math.round(dialog.progressBar.value*100)/100 + "%";
+									dialog.progressBar.setProgress(10 + (e.bytesLoaded / e.bytesTotal * 85), 100);
+									dialog.statusLabel.text = 'encoding byte array...' + Math.round(dialog.progressBar.value*100)/100 + "%";
 								}
-							}
-						);
-						
-						fs.openAsync(exportFile,FileMode.WRITE);
-						fs.writeBytes(data);
-						fs.close();
-					}
-				);
-				
-				t.addEventListener(TimerEvent.TIMER_COMPLETE, function(event:TimerEvent):void {
+							);
+							
+							png.addEventListener(Event.COMPLETE, 
+								function (e:Event = null):void 
+								{
+									var data:ByteArray = ru.inspirit.encoders.png.PNGEncoder.encodedPNGData;
+									var exportFile:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".png")
+									var fs:FileStream = new FileStream();
+									
+									fs.addEventListener(OutputProgressEvent.OUTPUT_PROGRESS, 
+										function (e:OutputProgressEvent):void {
+											
+											if(e.bytesPending == 0)
+											{
+												dialog.progressBar.setProgress(100, 100);
+												dialog.statusLabel.text = "file exported!";
+												
+												stage.frameRate = origFps;
+												
+												var t:Timer = new Timer(2, 1);
+												t.addEventListener(TimerEvent.TIMER_COMPLETE, function (e:Event):void
+												{
+													PopUpManager.removePopUp(dialog);
+												});
+												t.start();
+											}
+											else
+											{
+												dialog.progressBar.setProgress(95 + ((1 - e.bytesPending/e.bytesTotal) * 5), 100);
+												dialog.statusLabel.text = 'exporting file...' + Math.round(dialog.progressBar.value*100)/100 + "%";
+											}
+										}
+									);
+									
+									fs.openAsync(exportFile,FileMode.WRITE);
+									fs.writeBytes(data);
+									fs.close();
+								}
+							);
+							
+							t.addEventListener(TimerEvent.TIMER_COMPLETE, function(event:TimerEvent):void {
+								
+								png.encodeAsync(exportBitmap.bitmapData);
+							});
+							
+							t.start();
+						}
+					});
 					
-					png.encodeAsync(exportBitmap.bitmapData);
+					rt.start();
 				});
 				
-				t.start();
+				opsStream.openAsync(opsFile, FileMode.READ);
 			}
 			
 			// ........................................................................................
@@ -1025,7 +1056,7 @@
 				t.start();
 			}
 			
-			private function loadDrawingOverwrite(fileName:String):void
+			private function loadDrawing(fileName:String):void
 			{	
 				if(fileName == "")
 				{
@@ -1033,6 +1064,19 @@
 					statusTimer.start();
 					return;
 				}
+				
+				var file:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".ops");
+				
+				if(!file.exists)
+					return;
+				
+				var dialog:ExportDialog = new ExportDialog();
+				PopUpManager.addPopUp(dialog, this, true);
+				
+				dialog.progressBar.label = "";
+				dialog.progressBar.setProgress(0, 100);
+				
+				PopUpManager.centerPopUp(dialog);
 				
 				if(flushBitmap.source == null)
 					flushBitmap.source = new Bitmap(new BitmapData(renderGroup.width, renderGroup.height, false, 0xffffff));
@@ -1042,61 +1086,94 @@
 				else
 					opsStream = new FileStream();
 				
-				var file:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".ops");
-				opsStream.open(file, FileMode.READ);
-				
-				var tempBrushes:Array = new Array();
-				var tempOps:Array = new Array();
-				
-				while(opsStream.bytesAvailable > 0)
-					tempOps.push(opsStream.readObject());
-				
-				opsStream.close();
-				opsStream = null;
-				
-				file.copyTo(
-					new File(File.applicationDirectory.nativePath + File.separator + "temp.ops"),
-					true
-				);
-				
-				openOpsStream(true);
-				
-				var divisions:int = 10;
-				var interval:int = int(tempOps.length / divisions);
-				var t:Timer = new Timer(0.01, divisions + 1);
-				var i:int = 0;
-				var offset:int = interval;
-				
-				t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
+				opsStream.addEventListener(ProgressEvent.PROGRESS, function (e:ProgressEvent):void {
 					
-					for(; i < offset; ++i)
-					{
-						var ops:Array = tempOps[i];
-						
-						if(ops != null)
-						{
-							for each(var op:Object in ops)
-							{
-								if(tempBrushes[op.t] == null)
-								{
-									var BrushClass:Class = getDefinitionByName("brush.Brush" + op.t) as Class;
-									tempBrushes[op.t] = new BrushClass();
-									tempBrushes[op.t].sourceBitmap = sourceBitmap;
-								}
-								
-								tempBrushes[op.t].drawOp(canvasContainer.graphics, op);
-							}
-						}
-					}
+					dialog.statusLabel.text = "loading ops..." + Math.round(e.bytesLoaded / e.bytesTotal * 100) + "%";
+					dialog.progressBar.setProgress(Math.round(e.bytesLoaded / e.bytesTotal * 100), 100);
 					
-					flushToBitmap();
-					
-					offset += interval;
-					if(offset > tempOps.length)
-						offset = tempOps.length;
 				});
 				
-				t.start();
+				opsStream.addEventListener(Event.COMPLETE, function (e:Event):void {
+					
+					var tempBrushes:Array = new Array();
+					var tempOps:Array = new Array();
+					
+					var origFps:Number = stage.frameRate;
+					stage.frameRate = 1000; // timers ultimately limited by frame rate
+					
+					var rt:Timer = new Timer(0.001);
+					var count:uint = 0;
+					var totalBytes:uint = opsStream.bytesAvailable;
+					
+					rt.addEventListener(TimerEvent.TIMER, function (e:TimerEvent):void {
+						
+						if(opsStream.bytesAvailable > 0)
+						{
+							dialog.statusLabel.text = "reading object " + (++count);
+							dialog.progressBar.setProgress(Math.round((1-opsStream.bytesAvailable/totalBytes) * 100), 100);
+							tempOps.push(opsStream.readObject());
+						}
+						else
+						{
+							rt.stop();
+							stage.frameRate = origFps;
+							
+							PopUpManager.removePopUp(dialog);
+						
+							opsStream.close();
+							opsStream = null;
+							
+							file.copyTo(
+								new File(File.applicationDirectory.nativePath + File.separator + "temp.ops"),
+								true
+							);
+							
+							openOpsStream(true);
+							
+							var divisions:int = int(tempOps.length * 0.10);
+							var interval:int = int(tempOps.length / divisions);
+							var t:Timer = new Timer(0.001, divisions + 1);
+							var i:int = 0;
+							var offset:int = interval;
+							
+							t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
+								
+								for(; i < offset; ++i)
+								{
+									var ops:Array = tempOps[i];
+									
+									if(ops != null)
+									{
+										for each(var op:Object in ops)
+										{
+											if(tempBrushes[op.t] == null)
+											{
+												var BrushClass:Class = getDefinitionByName("brush.Brush" + op.t) as Class;
+												tempBrushes[op.t] = new BrushClass();
+												tempBrushes[op.t].sourceBitmap = sourceBitmap;
+											}
+											
+											tempBrushes[op.t].drawOp(canvasContainer.graphics, op);
+										}
+									}
+								}
+								
+								flushToBitmap();
+								
+								offset += interval;
+								if(offset > tempOps.length)
+									offset = tempOps.length;
+							});
+						
+							t.start();	
+						}
+						
+					});
+					
+					rt.start();
+				});
+				
+				opsStream.openAsync(file, FileMode.READ);
 			}
 			
 			private function draw(event:MouseEvent):void
