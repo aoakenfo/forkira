@@ -125,7 +125,7 @@ package brush
 		
 		protected function darkenColor(c:uint, factor:Number):uint
 		{
-			var r:Number = (c >> 16);
+			var r:Number = (c >> 16) & 0xFF;
 			var g:Number = (c >> 8) & 0xFF;
 			var b:Number = c & 0xFF;
 			

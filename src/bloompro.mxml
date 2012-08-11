@@ -18,6 +18,7 @@
 			import brush.Brush;
 			import brush.Brush1;
 			import brush.Brush10;
+			import brush.Brush11;
 			import brush.Brush2;
 			import brush.Brush3;
 			import brush.Brush4;
@@ -51,15 +52,16 @@
 			
 			// include refs for getDefinitionByName
 			private var b1:Brush1;
-			private var b6:Brush2;
-			private var b7:Brush3;
-			private var b13:Brush4;
-			private var b15:Brush5;
-			private var b16:Brush6;
-			private var b19:Brush7;
-			private var b21:Brush8;
-			private var b23:Brush9;
-			private var b24:Brush10;
+			private var b2:Brush2;
+			private var b3:Brush3;
+			private var b4:Brush4;
+			private var b5:Brush5;
+			private var b6:Brush6;
+			private var b7:Brush7;
+			private var b8:Brush8;
+			private var b9:Brush9;
+			private var b10:Brush10;
+			private var b11:Brush11;
 
 			private var frameCount:uint = 0;
 			private var curMillisecondCount:uint = 0;
