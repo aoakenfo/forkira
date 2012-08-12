@@ -729,12 +729,14 @@
 				
 				opsStream.addEventListener(ProgressEvent.PROGRESS, function(e:ProgressEvent):void {
 					
-					dialog.statusLabel.text = "loading ops..." + Math.round(e.bytesLoaded / e.bytesTotal * 100) + "%";
+					dialog.statusLabel.text = "loading drawing..." + Math.round(e.bytesLoaded / e.bytesTotal * 100) + "%";
 					dialog.progressBar.setProgress(Math.round(e.bytesLoaded / e.bytesTotal * 100), 100);
 					
 				});
 				
 				opsStream.addEventListener(Event.COMPLETE, function(e:Event):void {
+					
+					System.gc();
 					
 					var tempBrushes:Array = new Array();
 					var tempOps:Array = new Array();
@@ -750,13 +752,14 @@
 						
 						if(opsStream.bytesAvailable > 0)
 						{
-							dialog.statusLabel.text = "reading object " + (++count);
+							dialog.statusLabel.text = "reading vector " + (++count);
 							dialog.progressBar.setProgress(Math.round((1-opsStream.bytesAvailable/totalBytes) * 100), 100);
 							
 							tempOps.push(opsStream.readObject());
 						}
 						else
-						{			
+						{	
+							System.gc();
 							rt.stop();
 							
 							opsStream.close();
@@ -770,7 +773,8 @@
 							
 							t.addEventListener(TimerEvent.TIMER, function (event:TimerEvent):void {
 								
-								dialog.progressBar.setProgress(dialog.progressBar.value + 1, 100);
+								dialog.progressBar.setProgress(Math.round((dialog.progressBar.value + (100 / divisions)) * 100) / 100, 100);
+								dialog.statusLabel.text = "rendering offscreen canvas..." + dialog.progressBar.value + "%";
 								
 								for(; i < offset; ++i)
 								{
@@ -803,7 +807,6 @@
 								m.translate(-xOffset, -yOffset);
 								m.scale(scaleX, scaleY);
 								
-								dialog.statusLabel.text = "rendering to bitmap..." + dialog.progressBar.value + "%";
 								exportBitmap.bitmapData.draw(canvasContainer, m);
 								canvasContainer.graphics.clear();
 								
@@ -812,60 +815,50 @@
 									offset = tempOps.length;
 								
 							});
-							
-							var png:ru.inspirit.encoders.png.PNGEncoder = new ru.inspirit.encoders.png.PNGEncoder();
-							
-							png.addEventListener(ProgressEvent.PROGRESS, 
-								function (e:ProgressEvent):void 
-								{
-									dialog.progressBar.setProgress(10 + (e.bytesLoaded / e.bytesTotal * 85), 100);
-									dialog.statusLabel.text = 'encoding byte array...' + Math.round(dialog.progressBar.value*100)/100 + "%";
-								}
-							);
-							
-							png.addEventListener(Event.COMPLETE, 
-								function (e:Event = null):void 
-								{
-									var data:ByteArray = ru.inspirit.encoders.png.PNGEncoder.encodedPNGData;
-									var exportFile:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".png")
-									var fs:FileStream = new FileStream();
-									
-									fs.addEventListener(OutputProgressEvent.OUTPUT_PROGRESS, 
-										function (e:OutputProgressEvent):void {
-											
-											if(e.bytesPending == 0)
-											{
-												dialog.progressBar.setProgress(100, 100);
-												dialog.statusLabel.text = "file exported!";
-												
-												stage.frameRate = origFps;
-												
-												var t:Timer = new Timer(2, 1);
-												t.addEventListener(TimerEvent.TIMER_COMPLETE, function (e:Event):void
-												{
-													PopUpManager.removePopUp(dialog);
-												});
-												t.start();
-											}
-											else
-											{
-												dialog.progressBar.setProgress(95 + ((1 - e.bytesPending/e.bytesTotal) * 5), 100);
-												dialog.statusLabel.text = 'exporting file...' + Math.round(dialog.progressBar.value*100)/100 + "%";
-											}
-										}
-									);
-									
-									fs.openAsync(exportFile,FileMode.WRITE);
-									fs.writeBytes(data);
-									fs.close();
-								}
-							);
-							
+					
 							t.addEventListener(TimerEvent.TIMER_COMPLETE, function(event:TimerEvent):void {
 								
+								System.gc();
 								png.encodeAsync(exportBitmap.bitmapData);
 							});
 							
+							var png:ru.inspirit.encoders.png.PNGEncoder = new ru.inspirit.encoders.png.PNGEncoder();
+					
+							png.addEventListener(ProgressEvent.PROGRESS, function (e:ProgressEvent):void {
+								
+									dialog.progressBar.setProgress(e.bytesLoaded/e.bytesTotal * 100, 100);
+									dialog.statusLabel.text = 'encoding png...' + Math.round(dialog.progressBar.value*100)/100 + "%";
+								}
+							);
+							
+							png.addEventListener(Event.COMPLETE, function (e:Event):void {
+									
+								var data:ByteArray = ru.inspirit.encoders.png.PNGEncoder.encodedPNGData;
+								var exportFile:File = new File(File.desktopDirectory.nativePath + File.separator + fileName + ".png")
+								var fs:FileStream = new FileStream();
+								
+								fs.addEventListener(OutputProgressEvent.OUTPUT_PROGRESS, function (e:OutputProgressEvent):void {
+										
+									if(e.bytesPending == 0)
+									{
+										PopUpManager.removePopUp(dialog);
+										stage.frameRate = origFps;
+										System.gc();
+									}
+									else
+									{
+										dialog.progressBar.setProgress((1 - e.bytesPending/e.bytesTotal) * 100, 100);
+										dialog.statusLabel.text = 'exporting file...' + Math.round(dialog.progressBar.value*100)/100 + "%";
+									}
+								});
+								
+								dialog.progressBar.setProgress(0, 100);
+								fs.openAsync(exportFile,FileMode.WRITE);
+								fs.writeBytes(data);
+								fs.close();
+							});
+						
+							dialog.progressBar.setProgress(0, 100);
 							t.start();
 						}
 					});

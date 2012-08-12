@@ -180,8 +180,8 @@ package brush
 				var firstPoint:Point = new Point(mouseX, mouseY);
 				var secondPoint:Point = new Point(mouseX + b.offsetX, mouseY + b.offsetY);
 			
-				var interp:Point = Point.interpolate(firstPoint, secondPoint,f); // 1 <--> 0
-				//var interp:Point = Point.interpolate(secondPoint, firstPoint,f); // 1 <--> 0
+				//var interp:Point = Point.interpolate(firstPoint, secondPoint,f); // 1 <--> 0
+				var interp:Point = Point.interpolate(secondPoint, firstPoint,f); // 1 <--> 0
 			
 				b.currentOffsetX = mouseX - interp.x;
 				b.currentOffsetY = mouseY - interp.y;
