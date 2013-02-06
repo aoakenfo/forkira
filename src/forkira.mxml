@@ -95,6 +95,10 @@
 			{
 				this.nativeWindow.maximize();
 				
+				ConsoleCommand.addCommand("background-color", function(color:String):void {
+					
+					canvasBackgroundColor = uint('0x' + color);
+				});
 				ConsoleCommand.addCommand("exit", _exit, false);
 				ConsoleCommand.addCommand("load-drawing", loadDrawing);
 				ConsoleCommand.addCommand("save-drawing", saveDrawing);
@@ -550,7 +554,7 @@
 				sourceBitmap.source = bitmap;
 				
 				if(flushBitmap.source == null)
-					flushBitmap.source = new Bitmap(new BitmapData(renderGroup.width, renderGroup.height, false, 0xffffff));
+					flushBitmap.source = new Bitmap(new BitmapData(renderGroup.width, renderGroup.height, false, this.canvasBackgroundColor));
 				
 				var centerX:Number = renderGroup.width / 2;
 				var centerY:Number = renderGroup.height / 2;
@@ -944,7 +948,7 @@
 			
 			private function clear():void
 			{
-				canvasContainer.graphics.beginFill(0xffffff, 1);
+				canvasContainer.graphics.beginFill(this.canvasBackgroundColor, 1);
 				canvasContainer.graphics.drawRect(0, 0, canvasContainer.width, canvasContainer.height);
 				canvasContainer.graphics.endFill();
 				if(flushBitmap.source != null)
