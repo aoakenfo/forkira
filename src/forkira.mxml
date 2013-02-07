@@ -15,6 +15,18 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import flash.utils.getDefinitionByName;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+			import mx.events.FlexEvent;
+			import mx.graphics.SolidColor;
+			import mx.managers.PopUpManager;
+			import mx.utils.StringUtil;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.filters.DropShadowFilter;
+			
 			import brush.Brush;
 			import brush.Brush1;
 			import brush.Brush10;
@@ -28,19 +40,7 @@
 			import brush.Brush8;
 			import brush.Brush9;
 			
-			import flash.utils.getDefinitionByName;
-			
-			import mx.collections.ArrayCollection;
-			import mx.collections.ArrayList;
-			import mx.events.FlexEvent;
-			import mx.graphics.SolidColor;
-			import mx.managers.PopUpManager;
-			import mx.utils.StringUtil;
-			
 			import ru.inspirit.encoders.png.PNGEncoder;
-			
-			import spark.events.IndexChangeEvent;
-			import spark.filters.DropShadowFilter;
 			
 			// ........................................................................................
 			
@@ -294,7 +294,7 @@
 					status = "";
 				});
 				
-				//vgroup.swapElements(input, renderGroup);
+				this.loadImage('kiraRed.jpg');
 			}
 			
 			private function windowedApplication_enterFrameHandler(event:Event):void
@@ -569,6 +569,13 @@
 				
 				if(opsStream == null)
 					openOpsStream();
+				
+				if(event.currentTarget.url == 'app:/kiraRed.jpg')
+				{
+					this.sourceAlpha(0.1);
+					this.loadBrush(6);
+					this.btn6.selected = true;
+				}
 			}
 			
 			private function sourceAlpha(alpha:Number):void 
@@ -1328,6 +1335,15 @@
 				stage.quality = StageQuality.BEST;
 			}
 			
+			private  function brushButtonClicked(event:Event):void
+			{
+				var tb:ToggleButton = event.currentTarget as ToggleButton;
+				if(tb.selected)
+					loadBrush(int(tb.name));
+				else
+					clearBrush(int(tb.name));
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -1336,14 +1352,24 @@
 			  paddingBottom="40" paddingLeft="40" paddingRight="40" paddingTop="40"
 			  >
 		
-		<s:TextInput id="input" 
-					 width="100%" 
-					 focusEnabled="false"
-					 fontFamily="Monaco"
-					 fontSize="11"
-					 keyDown="inputKeyDown(event)"
-					 />
-	
+		<s:HGroup width="100%">
+			<s:ToggleButton label="1" width="35" click="brushButtonClicked(event)" name="1" id="btn1"/>
+			<s:ToggleButton label="2" width="35" click="brushButtonClicked(event)" name="2"/>
+			<s:ToggleButton label="3" width="35" click="brushButtonClicked(event)" name="3"/>
+			<s:ToggleButton label="4" width="35" click="brushButtonClicked(event)" name="4"/>
+			<s:ToggleButton label="5" width="35" click="brushButtonClicked(event)" name="5"/>
+			<s:ToggleButton label="6" width="35" click="brushButtonClicked(event)" name="6" id="btn6"/>
+			<s:ToggleButton label="7" width="35" click="brushButtonClicked(event)" name="7"/>
+			<s:ToggleButton label="8" width="35" click="brushButtonClicked(event)" name="8"/>
+			<s:ToggleButton label="9" width="35" click="brushButtonClicked(event)" name="9"/>
+			<s:ToggleButton label="10" width="35" click="brushButtonClicked(event)" name="10"/>
+			
+			<s:Spacer width="100%"/>
+			
+			<s:Button label="clear" click="this.clear()"/>
+			
+		</s:HGroup>
+		
 		<s:SkinnableContainer
 				id="renderGroup"
 				width="100%" height="100%"
@@ -1391,6 +1417,14 @@
 							  />
 			</s:layout>
 		</s:List>
+		
+		<s:TextInput id="input" 
+					 width="100%" 
+					 focusEnabled="false"
+					 fontFamily="Monaco"
+					 fontSize="11"
+					 keyDown="inputKeyDown(event)"
+					 />
 		
 		<s:HGroup width="100%" verticalAlign="baseline">
 			<s:HGroup width="100%" horizontalAlign="left">
