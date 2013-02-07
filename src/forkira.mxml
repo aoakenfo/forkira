@@ -1344,6 +1344,20 @@
 					clearBrush(int(tb.name));
 			}
 			
+			private function openImageDialog():void 
+			{
+				var fileToOpen:File = new File();
+				var txtFilter:FileFilter = new FileFilter("Image", "*.jpg;*.png;");
+				
+				fileToOpen.browseForOpen("Open", [txtFilter]);
+				
+				fileToOpen.addEventListener(Event.SELECT, imageSelected);
+			}
+			
+			private function imageSelected(event:Event):void 
+			{
+				this.loadImagePath(event.currentTarget.nativePath);
+			}
 		]]>
 	</fx:Script>
 	
@@ -1353,6 +1367,7 @@
 			  >
 		
 		<s:HGroup width="100%">
+			
 			<s:ToggleButton label="1" width="35" click="brushButtonClicked(event)" name="1" id="btn1"/>
 			<s:ToggleButton label="2" width="35" click="brushButtonClicked(event)" name="2"/>
 			<s:ToggleButton label="3" width="35" click="brushButtonClicked(event)" name="3"/>
@@ -1366,6 +1381,7 @@
 			
 			<s:Spacer width="100%"/>
 			
+			<s:Button label="open image..." click="openImageDialog()"/>
 			<s:Button label="clear" click="this.clear()"/>
 			
 		</s:HGroup>
