@@ -574,6 +574,7 @@
 				if(event.currentTarget.url == 'app:/kiraRed.jpg')
 				{
 					this.sourceAlpha(0.1);
+					this.imageAlphaSlider.value = 0.1;
 					this.loadBrush(6);
 					this.brushAlphaSlider.value = brushes[6].alpha;
 					this.btn6.selected = true;
@@ -1379,7 +1380,7 @@
 			protected function brushAlphaChange(event:Event):void
 			{
 				for each(var b:Brush in brushes)
-				b.alpha = event.currentTarget.value; 
+					b.alpha = event.currentTarget.value; 
 			}
 			
 			private function loadDrawingDialog():void 
@@ -1436,15 +1437,17 @@
 			<s:HSlider id="brushAlphaSlider" width="100" minimum="0" maximum="1" stepSize="0.05" change="brushAlphaChange(event)"/>
 			
 			<s:ToggleButton id="frameToggle" label="[]" width="30" click="this._frameWindow(event.currentTarget.selected ? 1 : 0)"/>
-			<s:Button label="90°" width="40" click="this.rotateFrameWindow()" enabled="{frameToggle.selected}"/>
-			<s:Button label="+" width="30" click="this.adjustFrameWindowSize(5)" enabled="{frameToggle.selected}"/>
-			<s:Button label="-" width="30" click="this.adjustFrameWindowSize(-5)" enabled="{frameToggle.selected}"/>
-			<s:Button label="l" width="30" click="this.adjustFramePosition(-5,0)" enabled="{frameToggle.selected}"/>
-			<s:Button label="r" width="30" click="this.adjustFramePosition(5,0)" enabled="{frameToggle.selected}"/>
-			<s:Button label="u" width="30" click="this.adjustFramePosition(0,-5)" enabled="{frameToggle.selected}"/>
-			<s:Button label="d" width="30" click="this.adjustFramePosition(0,5)" enabled="{frameToggle.selected}"/>
+			<s:Button label="90°" width="40" click="this.rotateFrameWindow()" visible="{frameToggle.selected}"/>
+			<s:Button label="+" width="30" click="this.adjustFrameWindowSize(5)" visible="{frameToggle.selected}"/>
+			<s:Button label="-" width="30" click="this.adjustFrameWindowSize(-5)" visible="{frameToggle.selected}"/>
+			<s:Button label="l" width="30" click="this.adjustFramePosition(-5,0)" visible="{frameToggle.selected}"/>
+			<s:Button label="r" width="30" click="this.adjustFramePosition(5,0)" visible="{frameToggle.selected}"/>
+			<s:Button label="u" width="30" click="this.adjustFramePosition(0,-5)" visible="{frameToggle.selected}"/>
+			<s:Button label="d" width="30" click="this.adjustFramePosition(0,5)" visible="{frameToggle.selected}"/>
 			
 			<s:Spacer width="100%"/>
+			
+			<s:HSlider id="imageAlphaSlider" width="100" minimum="0" maximum="1" stepSize="0.05" change="this.sourceBitmap.alpha = imageAlphaSlider.value"/>
 			
 			<s:Button label="open image..." click="openImageDialog()"/>
 			<s:Button label="load drawing..." click="loadDrawingDialog()"/>
