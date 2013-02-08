@@ -599,21 +599,23 @@
 					opsStream.open(opsFile, FileMode.WRITE);
 			}
 			
-			private function saveDrawing(fileName:String):void
+			private function saveDrawing(filePathAndName:String):void
 			{
-				if(fileName == "")
+				if(filePathAndName == "")
 				{
-					status = "! specify a file name";
+					status = "! specify a file path and name";
 					statusTimer.start();
 					return;
 				}
+				
+				if(filePathAndName.substr(0, 1) == "~")
+					filePathAndName= File.userDirectory.nativePath + filePathAndName.substr(1);
 				
 				if(opsStream != null)
 				{
 					opsStream.close();
 					opsFile.copyTo(
-						new File(File.applicationDirectory.nativePath + File.separator + 
-							fileName + ".ops"),
+						new File(filePathAndName),
 						true
 					);
 					opsStream.open(opsFile, FileMode.APPEND);
@@ -1068,16 +1070,19 @@
 				t.start();
 			}
 			
-			private function loadDrawing(fileName:String):void
+			private function loadDrawing(filePathAndName:String):void
 			{	
-				if(fileName == "")
+				if(filePathAndName == "")
 				{
-					status = "! specify a file name";
+					status = "! specify a file path and name";
 					statusTimer.start();
 					return;
 				}
 				
-				var file:File = new File(File.applicationDirectory.nativePath + File.separator + fileName + ".ops");
+				if(filePathAndName.substr(0, 1) == "~")
+					filePathAndName= File.userDirectory.nativePath + filePathAndName.substr(1);
+				
+				var file:File = new File(filePathAndName);
 				
 				if(!file.exists)
 					return;
@@ -1350,7 +1355,7 @@
 				var fileToOpen:File = new File();
 				var txtFilter:FileFilter = new FileFilter("Image", "*.jpg;*.png;");
 				
-				fileToOpen.browseForOpen("Open", [txtFilter]);
+				fileToOpen.browseForOpen("open image...", [txtFilter]);
 				
 				fileToOpen.addEventListener(Event.SELECT, imageSelected);
 			}
@@ -1366,6 +1371,35 @@
 				b.alpha = event.currentTarget.value; 
 			}
 			
+			private function loadDrawingDialog():void 
+			{
+				var fileToOpen:File = new File();
+				
+				fileToOpen.browseForOpen("load drawing...");
+				
+				fileToOpen.addEventListener(Event.SELECT, drawingSelected);
+			}
+			
+			private function drawingSelected(event:Event):void 
+			{
+				this.loadDrawing(event.currentTarget.nativePath);
+			}
+			
+			private function saveDrawingDialog():void 
+			{
+				var fileToSave:File = new File();
+				
+				if(opsStream != null)
+				{
+					opsStream.close();
+					opsStream.open(opsFile, FileMode.READ);
+					var data:ByteArray = new ByteArray();
+					opsStream.readBytes(data);
+					fileToSave.save(data, "Untitled drawing");
+					opsStream.close();
+					opsStream.open(opsFile, FileMode.APPEND);
+				}
+			}
 		]]>
 	</fx:Script>
 	
@@ -1392,6 +1426,8 @@
 			<s:Spacer width="100%"/>
 			
 			<s:Button label="open image..." click="openImageDialog()"/>
+			<s:Button label="load drawing..." click="loadDrawingDialog()"/>
+			<s:Button label="save drawing..." click="saveDrawingDialog()"/>
 			<s:Button label="clear" click="this.clear()"/>
 			
 		</s:HGroup>
