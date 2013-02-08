@@ -574,6 +574,7 @@
 				{
 					this.sourceAlpha(0.1);
 					this.loadBrush(6);
+					this.brushAlphaSlider.value = brushes[6].alpha;
 					this.btn6.selected = true;
 				}
 			}
@@ -1358,6 +1359,13 @@
 			{
 				this.loadImagePath(event.currentTarget.nativePath);
 			}
+			
+			protected function brushAlphaChange(event:Event):void
+			{
+				for each(var b:Brush in brushes)
+				b.alpha = event.currentTarget.value; 
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -1378,6 +1386,8 @@
 			<s:ToggleButton label="8" width="35" click="brushButtonClicked(event)" name="8"/>
 			<s:ToggleButton label="9" width="35" click="brushButtonClicked(event)" name="9"/>
 			<s:ToggleButton label="10" width="35" click="brushButtonClicked(event)" name="10"/>
+			
+			<s:HSlider id="brushAlphaSlider" width="100" minimum="0" maximum="1" stepSize="0.05" change="brushAlphaChange(event)"/>
 			
 			<s:Spacer width="100%"/>
 			
