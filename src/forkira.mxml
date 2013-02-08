@@ -782,8 +782,7 @@
 							System.gc();
 							rt.stop();
 							
-							opsStream.close();
-							opsStream = null;
+							openOpsStream(true);
 							
 							var divisions:int = int(tempOps.length * 0.10);
 							var interval:int = int(tempOps.length / divisions);
@@ -1413,6 +1412,18 @@
 				}
 			}
 			
+			private function exportNamePrompt():void
+			{
+				var dialog:ExportFileNamePrompt = new ExportFileNamePrompt();
+				
+				dialog.addEventListener('OK', function (event:Event):void {
+					export(dialog.fileName);
+				});
+				
+				PopUpManager.addPopUp(dialog, this, true);
+				PopUpManager.centerPopUp(dialog);
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -1444,6 +1455,7 @@
 			<s:Button label="r" width="30" click="this.adjustFramePosition(5,0)" visible="{frameToggle.selected}"/>
 			<s:Button label="u" width="30" click="this.adjustFramePosition(0,-5)" visible="{frameToggle.selected}"/>
 			<s:Button label="d" width="30" click="this.adjustFramePosition(0,5)" visible="{frameToggle.selected}"/>
+			<s:Button label="export..." click="exportNamePrompt()" visible="{frameToggle.selected}"/>
 			
 			<s:Spacer width="100%"/>
 			

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   width="400"
+			   creationComplete="textInput.setFocus()"
+			   close="PopUpManager.removePopUp(this)"
+			   >
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.managers.PopUpManager;
+			
+			[Bindable] public var fileName:String = 'Untitled Poster';
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" paddingBottom="20" paddingLeft="20" paddingRight="20" paddingTop="20">
+		
+		<s:TextInput id="textInput" text="@{fileName}" width="100%" />
+		<s:HGroup width="100%" horizontalAlign="right">
+			<s:Button label="Cancel" click="PopUpManager.removePopUp(this)"/>
+			<s:Button label="OK" click="dispatchEvent(new Event('OK', true)); PopUpManager.removePopUp(this)"/>
+		</s:HGroup>
+		
+	</s:VGroup>
+	
+</s:TitleWindow>
