@@ -129,18 +129,7 @@
 					aspectRatioInchesX = inchesX;
 					aspectRatioInchesY = inchesY;
 				});
-				ConsoleCommand.addCommand("rotate-frame-window", function():void {
-					
-					var aspectX:Number = aspectRatioInchesX;
-					aspectRatioInchesX = aspectRatioInchesY;
-					aspectRatioInchesY = aspectX;
-					
-					if(frameWindowRect != null)
-						createFrameRect(frameWindowRect.height);
-					else
-						createFrameRect(421.4634146341463);
-					
-				}, false);
+				ConsoleCommand.addCommand("rotate-frame-window", rotateFrameWindow, false);
 				ConsoleCommand.addCommand("total-bristles", function (brushNum:Number, numBristles:Number):void {
 					brushes[brushNum].totalBristles(numBristles);
 				});
@@ -161,6 +150,18 @@
 				});
 				ConsoleCommand.addCommand("help", help, false);
 				ConsoleCommand.addCommand("help-brush", helpBrush);
+			}
+			
+			private function rotateFrameWindow():void 
+			{	
+				var aspectX:Number = aspectRatioInchesX;
+				aspectRatioInchesX = aspectRatioInchesY;
+				aspectRatioInchesY = aspectX;
+				
+				if(frameWindowRect != null)
+					createFrameRect(frameWindowRect.height);
+				else
+					createFrameRect(421.4634146341463);
 			}
 			
 			private function help():void
@@ -681,17 +682,27 @@
 				frameWindowRect.width = frameWidth;
 				frameWindowRect.height = frameHeight;
 				
+				var square:Sprite = new Sprite();
+				square.graphics.beginFill(0x000000);
+				square.graphics.drawRect(0, 0, canvasContainer.width, canvasContainer.height);
+				frameWindow.mask = square;
+				
 				frameWindow.graphics.clear();
 				frameWindow.graphics.lineStyle(1, 0x000000, 1.0, false, LineScaleMode.NONE);
 				frameWindow.graphics.drawRect(frameWindowRect.x, frameWindowRect.y, frameWindowRect.width, frameWindowRect.height);	
 			}
 			
-			private function _frameWindow(on:Number):void {
-				
+			private function _frameWindow(on:Number):void 
+			{				
 				if(on == 1)
 				{
 					if(frameWindowRect == null)
 						createFrameRect(640);
+					else
+					{
+						frameWindow.graphics.lineStyle(1, 0x000000, 1.0, false, LineScaleMode.NONE);
+						frameWindow.graphics.drawRect(frameWindowRect.x, frameWindowRect.y, frameWindowRect.width, frameWindowRect.height);	
+					}
 				}
 				else
 					frameWindow.graphics.clear();
@@ -1400,6 +1411,7 @@
 					opsStream.open(opsFile, FileMode.APPEND);
 				}
 			}
+			
 		]]>
 	</fx:Script>
 	
@@ -1408,7 +1420,7 @@
 			  paddingBottom="40" paddingLeft="40" paddingRight="40" paddingTop="40"
 			  >
 		
-		<s:HGroup width="100%">
+		<s:HGroup width="100%" verticalAlign="middle">
 			
 			<s:ToggleButton label="1" width="35" click="brushButtonClicked(event)" name="1" id="btn1"/>
 			<s:ToggleButton label="2" width="35" click="brushButtonClicked(event)" name="2"/>
@@ -1422,6 +1434,15 @@
 			<s:ToggleButton label="10" width="35" click="brushButtonClicked(event)" name="10"/>
 			
 			<s:HSlider id="brushAlphaSlider" width="100" minimum="0" maximum="1" stepSize="0.05" change="brushAlphaChange(event)"/>
+			
+			<s:ToggleButton id="frameToggle" label="[]" width="30" click="this._frameWindow(event.currentTarget.selected ? 1 : 0)"/>
+			<s:Button label="90°" width="40" click="this.rotateFrameWindow()" enabled="{frameToggle.selected}"/>
+			<s:Button label="+" width="30" click="this.adjustFrameWindowSize(5)" enabled="{frameToggle.selected}"/>
+			<s:Button label="-" width="30" click="this.adjustFrameWindowSize(-5)" enabled="{frameToggle.selected}"/>
+			<s:Button label="l" width="30" click="this.adjustFramePosition(-5,0)" enabled="{frameToggle.selected}"/>
+			<s:Button label="r" width="30" click="this.adjustFramePosition(5,0)" enabled="{frameToggle.selected}"/>
+			<s:Button label="u" width="30" click="this.adjustFramePosition(0,-5)" enabled="{frameToggle.selected}"/>
+			<s:Button label="d" width="30" click="this.adjustFramePosition(0,5)" enabled="{frameToggle.selected}"/>
 			
 			<s:Spacer width="100%"/>
 			
@@ -1456,7 +1477,8 @@
 			<s:SpriteVisualElement id="canvasContainer"
 								   width="100%" height="100%"/>
 			<s:SpriteVisualElement id="frameWindow"
-								   width="100%" height="100%"/>
+								   width="100%" height="100%"
+								   />
 		
 		</s:SkinnableContainer>
 		
