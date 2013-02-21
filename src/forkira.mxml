@@ -20,6 +20,7 @@
 			import mx.collections.ArrayCollection;
 			import mx.collections.ArrayList;
 			import mx.events.FlexEvent;
+			import mx.events.ItemClickEvent;
 			import mx.graphics.SolidColor;
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
@@ -577,7 +578,6 @@
 					this.imageAlphaSlider.value = 0.1;
 					this.loadBrush(6);
 					this.brushAlphaSlider.value = brushes[6].alpha;
-					this.btn6.selected = true;
 				}
 			}
 			
@@ -1352,15 +1352,6 @@
 				stage.quality = StageQuality.BEST;
 			}
 			
-			private  function brushButtonClicked(event:Event):void
-			{
-				var tb:ToggleButton = event.currentTarget as ToggleButton;
-				if(tb.selected)
-					loadBrush(int(tb.name));
-				else
-					clearBrush(int(tb.name));
-			}
-			
 			private function openImageDialog():void 
 			{
 				var fileToOpen:File = new File();
@@ -1424,8 +1415,29 @@
 				PopUpManager.centerPopUp(dialog);
 			}
 			
+			protected function brushButtonClicked(event:ItemClickEvent):void
+			{
+				clearAllBrushes();
+				loadBrush(int(event.index + 1));
+			}
+			
 		]]>
 	</fx:Script>
+	
+	<fx:Declarations>
+		<fx:Array id="buttonLabels">
+			<fx:String>1</fx:String>
+			<fx:String>2</fx:String>
+			<fx:String>3</fx:String>
+			<fx:String>4</fx:String>
+			<fx:String>5</fx:String>
+			<fx:String>6</fx:String>
+			<fx:String>7</fx:String>
+			<fx:String>8</fx:String>
+			<fx:String>9</fx:String>
+			<fx:String>10</fx:String>
+		</fx:Array>
+	</fx:Declarations>
 	
 	<s:VGroup id="vgroup" 
 			  width="100%" height="100%"
@@ -1434,16 +1446,7 @@
 		
 		<s:HGroup width="100%" verticalAlign="middle">
 			
-			<s:ToggleButton label="1" width="35" click="brushButtonClicked(event)" name="1" id="btn1"/>
-			<s:ToggleButton label="2" width="35" click="brushButtonClicked(event)" name="2"/>
-			<s:ToggleButton label="3" width="35" click="brushButtonClicked(event)" name="3"/>
-			<s:ToggleButton label="4" width="35" click="brushButtonClicked(event)" name="4"/>
-			<s:ToggleButton label="5" width="35" click="brushButtonClicked(event)" name="5"/>
-			<s:ToggleButton label="6" width="35" click="brushButtonClicked(event)" name="6" id="btn6"/>
-			<s:ToggleButton label="7" width="35" click="brushButtonClicked(event)" name="7"/>
-			<s:ToggleButton label="8" width="35" click="brushButtonClicked(event)" name="8"/>
-			<s:ToggleButton label="9" width="35" click="brushButtonClicked(event)" name="9"/>
-			<s:ToggleButton label="10" width="35" click="brushButtonClicked(event)" name="10"/>
+			<mx:ToggleButtonBar selectedIndex="5" dataProvider="{buttonLabels}" itemClick="brushButtonClicked(event)" buttonWidth="30"/>
 			
 			<s:HSlider id="brushAlphaSlider" width="100" minimum="0" maximum="1" stepSize="0.05" change="brushAlphaChange(event)"/>
 			
